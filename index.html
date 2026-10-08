@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NIRVANA // Genesis Hub</title>
+    
+    <!-- 首屏防止主题闪烁脚本 -->
+    <script>
+        (function() {
+            try {
+                var mode = localStorage.getItem('genesis_theme_mode');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (mode === 'dark' || (!mode && prefersDark) || (mode === 'auto' && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bgLight: '#f5f5f7',
+                            bgDark: '#000000',
+                            accent: '#2997ff',
+                            accentMuted: '#0071e3',
+                            titanium: '#86868b',
+                            platinum: '#d2b48c'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        :root { 
+            --apple-bg: #f5f5f7; 
+            --apple-panel: rgba(255, 255, 255, 0.70);
+            --apple-panel-sub: rgba(255, 255, 255, 0.50);
+            --apple-border: rgba(0, 0, 0, 0.08);
+            --apple-border-sub: rgba(0, 0, 0, 0.05);
+            --apple-text-title: #1d1d1f;
+            --apple-text-sub: #6e6e73;
+            --apple-shadow: rgba(0, 0, 0, 0.06);
+            --apple-specular: rgba(255, 255, 255, 0.95);
+            --theme-accent: #0071e3;
+        }
+        html.dark { 
+            --apple-bg: #000000; 
+            --apple-panel: rgba(22, 22, 26, 0.50);
+            --apple-panel-sub: rgba(32, 32, 38, 0.38);
+            --apple-border: rgba(255, 255, 255, 0.12);
+            --apple-border-sub: rgba(255, 255, 255, 0.06);
+            --apple-text-title: #f5f5f7;
+            --apple-text-sub: #86868b;
+            --apple-shadow: rgba(0, 0, 0, 0.65);
+            --apple-specular: rgba(255, 255, 255, 0.16);
+            --theme-accent: #2997ff;
+        }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; 
+            background-color: var(--apple-bg); 
+            color: var(--apple-text-sub);
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .apple-glass { 
+            background: var(--apple-panel); 
+            backdrop-filter: blur(48px) saturate(220%);
+            -webkit-backdrop-filter: blur(48px) saturate(220%);
+            border: 1px solid var(--apple-border);
+            border-radius: 1.5rem;
+            box-shadow: 0 16px 40px 0 var(--apple-shadow), inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-sub {
+            background: var(--apple-panel-sub);
+            backdrop-filter: blur(30px) saturate(190%);
+            -webkit-backdrop-filter: blur(30px) saturate(190%);
+            border: 1px solid var(--apple-border-sub);
+            border-radius: 1rem;
+            box-shadow: inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-nav-radical {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.7);
+        }
+        html.dark .apple-glass-nav-radical {
+            background: rgba(10, 10, 14, 0.45);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.16);
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.65;
+            animation: floatAmbient 22s ease-in-out infinite alternate;
+        }
+        @keyframes floatAmbient {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.08); }
+            100% { transform: translate(-30px, 25px) scale(0.92); }
+        }
+
+        .hub-card {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+        }
+        .hub-card:hover {
+            transform: translateY(-4px) scale(1.01);
+        }
+        html.dark .hub-card:hover {
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(41, 151, 255, 0.12);
+        }
+        .hub-card:active {
+            transform: scale(0.99);
+        }
+
+        /* 厂牌 Logo 专属容器滤镜与光影适配 */
+        .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+        }
+        html.dark .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="selection:bg-neutral-800 selection:text-white relative min-h-screen flex flex-col justify-between">
+
+    <!-- 动态模糊环境光 -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="ambient-orb w-[480px] h-[480px] -top-24 -left-20 bg-blue-600/20 dark:bg-blue-600/15"></div>
+        <div class="ambient-orb w-[480px] h-[480px] top-1/3 -right-28 bg-indigo-600/20 dark:bg-indigo-500/15" style="animation-delay: -7s;"></div>
+        <div class="ambient-orb w-[420px] h-[420px] bottom-10 left-1/4 bg-amber-500/15 dark:bg-amber-600/10" style="animation-delay: -14s;"></div>
+    </div>
+
+    <!-- 顶部玻璃导航栏 -->
+    <header class="fixed top-0 w-full z-40 apple-glass-nav-radical transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5 cursor-pointer hover:opacity-85 transition" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <!-- 顶栏微缩 Logo -->
+                <div class="w-7 h-7 rounded-full brand-logo-frame flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="./logo.png" alt="NIRVANA Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='./logo.jpg';">
+                </div>
+                <div class="flex items-baseline space-x-1.5">
+                    <span class="font-bold text-sm tracking-tight text-neutral-900 dark:text-neutral-100">NIRVANA</span>
+                    <span class="text-xs text-neutral-500 font-normal">Genesis Hub</span>
+                </div>
+            </div>
+
+            <!-- 右侧操作区：关于我 + 主题切换 -->
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="openAboutModal()" class="px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 apple-glass-sub text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs font-medium cursor-pointer shadow-sm select-none">
+                    <span class="text-blue-500">👤</span>
+                    <span>关于我</span>
+                </button>
+
+                <button type="button" onclick="toggleTheme()" id="btn-theme-toggle" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs cursor-pointer shadow-sm select-none" title="外观设置">
+                    <span id="theme-icon">🌓</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体区域 -->
+    <main class="pt-24 pb-12 max-w-6xl mx-auto px-4 sm:px-6 relative z-10 w-full flex-1 flex flex-col justify-center">
+
+        <!-- Hero 标题区与厂牌中心展台 -->
+        <div class="text-center max-w-3xl mx-auto mb-8 sm:mb-12 space-y-4">
+            
+            <!-- 厂牌徽标大展台 -->
+            <div class="inline-flex flex-col items-center group cursor-pointer" onclick="openAboutModal()">
+                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl brand-logo-frame p-1 shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_30px_rgba(41,151,255,0.35)] relative overflow-hidden">
+                    <img src="./logo.png" alt="NIRVANA" class="w-full h-full object-contain rounded-2xl" onerror="this.onerror=null; this.src='./logo.jpg';">
+                </div>
+                <div class="mt-2.5 inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full apple-glass-sub text-[10px] font-mono tracking-widest uppercase text-neutral-600 dark:text-neutral-400 border border-black/[0.05] dark:border-white/[0.08]">
+                    <span>NIRVANA VAPE LABEL</span>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">
+                    Genesis Hub
+                </h1>
+                <p class="text-xs sm:text-base text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl mx-auto">
+                    请选择您要进入的工作模块：
+                </p>
+            </div>
+        </div>
+
+        <!-- 纯粹双模块入口卡片网格 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+
+            <!-- 卡片 1：实战操作 -->
+            <div onclick="window.location.href='./practice.html'" class="hub-card apple-glass p-7 sm:p-9 cursor-pointer flex flex-col justify-between group relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-amber-500/10 dark:bg-amber-500/10 blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                <div class="space-y-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl border border-amber-500/20 shadow-inner">
+                        🛠️
+                    </div>
+
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+                        实战操作
+                    </h2>
+                </div>
+
+                <div class="pt-6 mt-8 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    <span class="group-hover:translate-x-1 transition-transform duration-300 flex items-center space-x-1.5">
+                        <span>进入模块</span>
+                        <span>➜</span>
+                    </span>
+                    <span class="text-[10px] font-mono opacity-60">practice.html</span>
+                </div>
+            </div>
+
+            <!-- 卡片 2：导油理论 -->
+            <div onclick="window.location.href='./theory.html'" class="hub-card apple-glass p-7 sm:p-9 cursor-pointer flex flex-col justify-between group relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-blue-500/10 dark:bg-blue-500/10 blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                <div class="space-y-4">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl border border-blue-500/20 shadow-inner">
+                        🌊
+                    </div>
+
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+                        导油理论
+                    </h2>
+                </div>
+
+                <div class="pt-6 mt-8 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400">
+                    <span class="group-hover:translate-x-1 transition-transform duration-300 flex items-center space-x-1.5">
+                        <span>进入模块</span>
+                        <span>➜</span>
+                    </span>
+                    <span class="text-[10px] font-mono opacity-60">theory.html</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- 页脚版权与系统信息 -->
+    <footer class="w-full py-5 text-center text-xs text-neutral-400 dark:text-neutral-600 border-t border-black/[0.04] dark:border-white/[0.06] relative z-10 font-mono">
+        NIRVANA VAPE LABEL © 2026 // Genesis Hub
+    </footer>
+
+    <!-- =========================================================================
+         「关于我」模态弹窗 (默认物理隐藏 display: none，杜绝遮挡)
+         ========================================================================= -->
+    <div id="about-modal" style="display: none;" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-md opacity-0 transition-opacity duration-300 select-none" onclick="handleModalBackdropClick(event)">
+        <div id="about-modal-card" class="modal-card apple-glass p-6 sm:p-7 max-w-sm w-full relative scale-95 transition-all duration-300 space-y-4 border border-black/10 dark:border-white/10 shadow-2xl" onclick="event.stopPropagation()">
+            <!-- 关闭按钮 -->
+            <button type="button" onclick="closeAboutModal()" class="absolute top-4 right-4 w-7 h-7 rounded-full apple-glass-sub flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition text-xs cursor-pointer">
+                ✕
+            </button>
+
+            <!-- 弹窗头部：厂牌 Logo 与名号 -->
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-2xl brand-logo-frame flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                    <img src="./logo.png" alt="NIRVANA" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='./logo.jpg';">
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5">
+                        <span>NIRVANA</span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/5 dark:bg-white/10 text-neutral-500">涅槃</span>
+                    </h3>
+                    <div class="text-[11px] text-neutral-500 font-mono">NIRVANA VAPE LABEL</div>
+                </div>
+            </div>
+
+            <div class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                欢迎来到涅槃（NIRVANA）创世硬核工坊。本知识库专注于不锈钢网雾化技术、微孔毛细结构与流体气动力的深度研究。如有技术探讨、机型裁剪数据补充或交流需求，欢迎联系。
+            </div>
+
+            <!-- 微信展示与复制卡片 -->
+            <div class="apple-glass-sub p-3.5 rounded-xl space-y-2 border border-black/[0.04] dark:border-white/[0.06]">
+                <div class="text-[10px] font-mono uppercase tracking-wider text-neutral-400">WeChat Contact // 微信联系方式</div>
+                <div class="flex items-center justify-between">
+                    <span id="wechat-id-text" class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide select-all">NiePan_vape</span>
+                    <button type="button" onclick="copyWechat()" id="btn-copy-wechat" class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition shadow-sm active:scale-95 cursor-pointer">
+                        <span id="copy-btn-text">复制微信号</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center text-[10px] text-neutral-400 font-mono pt-1">
+                点击卡片外部或按 ESC 即可关闭
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互逻辑脚本 -->
+    <script>
+        // ----------------------------------------------------
+        // 1. 系统模式动态监听与外观三态管理 (Auto -> Dark -> Light -> Auto)
+        // ----------------------------------------------------
+        var currentThemeMode = 'auto'; // 'auto' | 'dark' | 'light'
+        var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            var icon = document.getElementById('theme-icon');
+            var btn = document.getElementById('btn-theme-toggle');
+            if (!icon) return;
+
+            if (currentThemeMode === 'auto') {
+                icon.innerText = '🌓';
+                if (btn) btn.title = '外观模式：跟随系统 (点击切换)';
+            } else if (currentThemeMode === 'dark') {
+                icon.innerText = '🌙';
+                if (btn) btn.title = '外观模式：深色模式 (点击切换)';
+            } else {
+                icon.innerText = '☀';
+                if (btn) btn.title = '外观模式：浅色模式 (点击切换)';
+            }
+        }
+
+        function initTheme() {
+            try {
+                var saved = localStorage.getItem('genesis_theme_mode');
+                if (saved === 'dark' || saved === 'light') {
+                    currentThemeMode = saved;
+                } else {
+                    currentThemeMode = 'auto';
+                }
+            } catch(e) {
+                currentThemeMode = 'auto';
+            }
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+
+            var handleMediaChange = function(e) {
+                if (currentThemeMode === 'auto') {
+                    applyTheme(e.matches);
+                }
+            };
+
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleMediaChange);
+            } else if (mediaQuery.addListener) {
+                mediaQuery.addListener(handleMediaChange);
+            }
+        }
+
+        function toggleTheme() {
+            if (currentThemeMode === 'auto') {
+                currentThemeMode = mediaQuery.matches ? 'light' : 'dark';
+            } else if (currentThemeMode === 'dark') {
+                currentThemeMode = 'light';
+            } else if (currentThemeMode === 'light') {
+                currentThemeMode = 'auto';
+            }
+
+            try {
+                if (currentThemeMode === 'auto') {
+                    localStorage.removeItem('genesis_theme_mode');
+                } else {
+                    localStorage.setItem('genesis_theme_mode', currentThemeMode);
+                }
+            } catch(e) {}
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+        }
+
+        // ----------------------------------------------------
+        // 2. 「关于我」微质感弹窗控制
+        // ----------------------------------------------------
+        function openAboutModal() {
+            var modal = document.getElementById('about-modal');
+            var card = document.getElementById('about-modal-card');
+            if (!modal) return;
+            
+            modal.style.display = 'flex';
+            requestAnimationFrame(function() {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                if (card) {
+                    card.classList.remove('scale-95');
+                    card.classList.add('scale-100');
+                }
+            });
+        }
+
+        function closeAboutModal() {
+            var modal = document.getElementById('about-modal');
+            var card = document.getElementById('about-modal-card');
+            if (!modal) return;
+
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            if (card) {
+                card.classList.remove('scale-100');
+                card.classList.add('scale-95');
+            }
+
+            setTimeout(function() {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function handleModalBackdropClick(e) {
+            if (e.target.id === 'about-modal') {
+                closeAboutModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAboutModal();
+            }
+        });
+
+        // ----------------------------------------------------
+        // 3. 一键复制微信号功能
+        // ----------------------------------------------------
+        function copyWechat() {
+            var text = 'NiePan_vape';
+            var btnText = document.getElementById('copy-btn-text');
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopiedFeedback(btnText);
+                }).catch(function() {
+                    fallbackCopy(text, btnText);
+                });
+            } else {
+                fallbackCopy(text, btnText);
+            }
+        }
+
+        function fallbackCopy(text, btnText) {
+            var tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showCopiedFeedback(btnText);
+            } catch (err) {
+                alert('复制失败，请手动长按复制：' + text);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function showCopiedFeedback(btnTextEl) {
+            if (!btnTextEl) return;
+            var original = btnTextEl.innerText;
+            btnTextEl.innerText = '✓ 已复制';
+            setTimeout(function() {
+                btnTextEl.innerText = original;
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NIRVANA // 实战操作工坊</title>
+    
+    <!-- 1. 微信内核字体缩放强制劫持与锁定（彻底解决微信放大字体爆框问题） -->
+    <script>
+        (function() {
+            function handleFontSize() {
+                if (typeof WeixinJSBridge !== "undefined" && WeixinJSBridge.invoke) {
+                    WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+                    WeixinJSBridge.on('menu:setfont', function() {
+                        WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+                    });
+                }
+            }
+            if (typeof WeixinJSBridge === "undefined") {
+                document.addEventListener("WeixinJSBridgeReady", handleFontSize, false);
+            } else {
+                handleFontSize();
+            }
+        })();
+    </script>
+
+    <!-- 2. 首屏防止白屏/黑屏闪烁预处理脚本 -->
+    <script>
+        (function() {
+            try {
+                var mode = localStorage.getItem('genesis_theme_mode');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (mode === 'dark' || (!mode && prefersDark) || (mode === 'auto' && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bgLight: '#f5f5f7',
+                            bgDark: '#000000',
+                            accent: '#2997ff',
+                            accentMuted: '#0071e3',
+                            titanium: '#86868b',
+                            platinum: '#d2b48c'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        /* 强制禁用移动端文字自动调整与缩放 */
+        html, body {
+            -webkit-text-size-adjust: 100% !important;
+            -moz-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
+            touch-action: manipulation;
+        }
+
+        :root { 
+            --apple-bg: #f5f5f7; 
+            --apple-panel: rgba(255, 255, 255, 0.70);
+            --apple-panel-sub: rgba(255, 255, 255, 0.50);
+            --apple-border: rgba(0, 0, 0, 0.08);
+            --apple-border-sub: rgba(0, 0, 0, 0.05);
+            --apple-text-title: #1d1d1f;
+            --apple-text-sub: #6e6e73;
+            --apple-pill: rgba(0, 0, 0, 0.04);
+            --apple-pill-active: #ffffff;
+            --apple-shadow: rgba(0, 0, 0, 0.06);
+            --apple-specular: rgba(255, 255, 255, 0.95);
+            --theme-accent: #0071e3;
+            --theme-accent-sub: rgba(0, 113, 227, 0.12);
+            --theme-accent-glow: rgba(0, 113, 227, 0.28);
+        }
+        html.dark { 
+            --apple-bg: #000000; 
+            --apple-panel: rgba(22, 22, 26, 0.50);
+            --apple-panel-sub: rgba(32, 32, 38, 0.38);
+            --apple-border: rgba(255, 255, 255, 0.12);
+            --apple-border-sub: rgba(255, 255, 255, 0.06);
+            --apple-text-title: #f5f5f7;
+            --apple-text-sub: #86868b;
+            --apple-pill: rgba(255, 255, 255, 0.08);
+            --apple-pill-active: rgba(255, 255, 255, 0.18);
+            --apple-shadow: rgba(0, 0, 0, 0.65);
+            --apple-specular: rgba(255, 255, 255, 0.16);
+            --theme-accent: #2997ff;
+            --theme-accent-sub: rgba(41, 151, 255, 0.16);
+            --theme-accent-glow: rgba(41, 151, 255, 0.35);
+        }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; 
+            background-color: var(--apple-bg); 
+            color: var(--apple-text-sub);
+            min-height: 100vh;
+            min-height: 100dvh;
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .apple-glass { 
+            background: var(--apple-panel); 
+            backdrop-filter: blur(48px) saturate(220%);
+            -webkit-backdrop-filter: blur(48px) saturate(220%);
+            border: 1px solid var(--apple-border);
+            border-radius: 1.35rem;
+            box-shadow: 0 14px 40px 0 var(--apple-shadow), inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-sub {
+            background: var(--apple-panel-sub);
+            backdrop-filter: blur(30px) saturate(190%);
+            -webkit-backdrop-filter: blur(30px) saturate(190%);
+            border: 1px solid var(--apple-border-sub);
+            border-radius: 0.95rem;
+            box-shadow: inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-nav-radical {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.7);
+        }
+        html.dark .apple-glass-nav-radical {
+            background: rgba(10, 10, 14, 0.45);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.16);
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.65;
+            animation: floatAmbient 22s ease-in-out infinite alternate;
+        }
+        @keyframes floatAmbient {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.08); }
+            100% { transform: translate(-30px, 25px) scale(0.92); }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        canvas { display: block; width: 100%; outline: none; }
+
+        .app-view { display: none; }
+        .app-view.active { display: block; animation: appleSpringIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes appleSpringIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .practice-sub-view, .diag-sub-view { display: none; animation: subSpringIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .practice-sub-view.active, .diag-sub-view.active { display: block; }
+        @keyframes subSpringIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fire-glow { 
+            box-shadow: 0 0 40px rgba(255, 69, 0, 0.95), inset 0 0 14px rgba(255, 255, 255, 0.9); 
+            animation: pulseFire 1.2s infinite alternate ease-in-out;
+        }
+        @keyframes pulseFire {
+            0% { transform: scale(1.03); }
+            100% { transform: scale(1.07); box-shadow: 0 0 55px rgba(255, 69, 0, 1), inset 0 0 18px rgba(255, 255, 255, 1); }
+        }
+
+        .oled-panel {
+            background: radial-gradient(circle at 50% 50%, #080d12 0%, #020305 100%);
+            box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.95), 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .oled-glow-text {
+            color: #38ef7d;
+            text-shadow: 0 0 10px rgba(56, 239, 125, 0.65), 0 0 20px rgba(56, 239, 125, 0.35);
+        }
+        .oled-amber-text {
+            color: #ffaa00;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.65), 0 0 20px rgba(255, 170, 0, 0.35);
+        }
+        .oled-alert-text {
+            color: #ff3b30;
+            text-shadow: 0 0 12px rgba(255, 59, 48, 0.8), 0 0 24px rgba(255, 59, 48, 0.4);
+        }
+
+        .tool-item-checked {
+            text-decoration: line-through;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+        
+        .drawer-content {
+            transition: max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        }
+
+        /* 厂牌 Logo 专属容器样式 */
+        .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+        }
+        html.dark .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.12);
+        }
+    </style>
+</head>
+<body class="selection:bg-neutral-800 selection:text-white relative flex flex-col justify-between">
+
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="ambient-orb w-[460px] h-[460px] -top-20 -left-20 bg-blue-600/25 dark:bg-blue-600/15"></div>
+        <div class="ambient-orb w-[480px] h-[480px] top-1/3 -right-28 bg-indigo-600/25 dark:bg-indigo-500/15" style="animation-delay: -7s;"></div>
+        <div class="ambient-orb w-[420px] h-[420px] bottom-10 left-1/4 bg-amber-500/15 dark:bg-amber-600/10" style="animation-delay: -14s;"></div>
+    </div>
+
+    <!-- 顶栏：厂牌标识、返回主页与色彩模式切换 -->
+    <header class="fixed top-0 w-full z-50 apple-glass-nav-radical transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <!-- 左侧：厂牌 Logo + 标题（支持点击返回主页） -->
+            <div class="flex items-center space-x-2.5 cursor-pointer hover:opacity-85 transition" onclick="window.location.href='./index.html'" title="返回门户主页">
+                <div class="w-7 h-7 rounded-full brand-logo-frame flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="./logo.png" alt="NIRVANA Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='./logo.jpg';">
+                </div>
+                <div class="flex items-baseline space-x-1.5">
+                    <span class="font-bold text-sm tracking-tight text-neutral-900 dark:text-neutral-100">NIRVANA</span>
+                    <span class="text-xs text-amber-600 dark:text-amber-400 font-medium">实战操作工坊</span>
+                </div>
+            </div>
+
+            <!-- 右侧：返回主页按钮 + 主题切换 -->
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="window.location.href='./index.html'" class="px-3 py-1.5 rounded-full flex items-center space-x-1.5 apple-glass-sub text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs font-medium cursor-pointer shadow-sm select-none">
+                    <span class="text-amber-500 font-bold">←</span>
+                    <span class="hidden sm:inline">返回主页</span>
+                    <span class="sm:hidden">主页</span>
+                </button>
+
+                <button type="button" onclick="toggleTheme()" id="btn-theme-toggle" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs cursor-pointer shadow-sm select-none" title="外观设置">
+                    <span id="theme-icon">🌓</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12 max-w-6xl mx-auto px-4 sm:px-6 relative z-10 flex-1 w-full">
+
+        <!-- =========================================================================
+             主模块一：实战操作
+             ========================================================================= -->
+        <section id="view-practice" class="app-view active">
+            <!-- 顶部分段控制器 -->
+            <div class="flex justify-center mb-6">
+                <div class="p-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] apple-glass-sub flex space-x-1 relative overflow-x-auto no-scrollbar max-w-full">
+                    <button onclick="switchPracticeTab('sub-tools')" id="p-nav-sub-tools" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all whitespace-nowrap relative z-10">基础工具</button>
+                    <button onclick="switchPracticeTab('sub-blueprint')" id="p-nav-sub-blueprint" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">裁剪数据</button>
+                    <button onclick="switchPracticeTab('sub-oxidize')" id="p-nav-sub-oxidize" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">烧网子</button>
+                    <button onclick="switchPracticeTab('sub-topology')" id="p-nav-sub-topology" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">绕丝规范</button>
+                    <button onclick="switchPracticeTab('sub-diagnostics')" id="p-nav-sub-diagnostics" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">调整发热</button>
+                </div>
+            </div>
+
+            <!-- 实战子模块 1: 基础工具 -->
+            <div id="sub-tools" class="practice-sub-view active space-y-6">
+                <div class="mb-5">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">NIRVANA CRAFT // Toolkit & Readiness</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">基础工具自查</h2>
+                    <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                        “工欲善其事，必先利其器”。提供新手核心开荒配置清单与智商税避坑指南。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                    <div class="apple-glass p-5 space-y-4">
+                        <div class="flex items-center space-x-2 pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">核心开荒工具 (必须具备)</h3>
+                        </div>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">不锈钢网 (45°斜纹)</strong>：新手首选 200 目（软硬适中、好卷好导油）；避坑老式平织直纹网（硬、难塑形）。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">辫子丝 (多股微绞)</strong>：无主芯软丝，低热容低电压轻松出烟防烫仓；避坑硬素丝，严禁拿去缠棉花。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">平口无牙尖嘴钳 (4~5寸)</strong>：前端 1cm 严密咬合，用于夹网烧火与夹丝定型；严禁陶瓷镊子夹网火烧爆裂。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">长刃口剪刀 (极锋利)</strong>：刃长 3~4cm 以上，保证一刀到底防起毛刺；切忌用短刃小剪刀断续剪网。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">圆头陶瓷镊子</strong>：头部圆润钝化，通电调丝、刮丝消除短路专用；避免尖头刀刃刮伤氧化层。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">零起点薄钢尺</strong>：0 刻度紧贴尺头，探入电极柱底测高必备；划线用硬针划痕，勿用铅笔防石墨污染。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">防风高温喷枪</strong>：火焰温度高、气密可靠，用于脱脂氧化与吹火退火；远离廉价漏气打火机保安全。
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="apple-glass p-5 space-y-4 h-full">
+                        <div class="flex items-center space-x-2 pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                            <span class="w-2.5 h-2.5 rounded-full bg-neutral-400"></span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">辅助与维护工具 (按需选配)</h3>
+                        </div>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-neutral-500 focus:ring-neutral-400 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300 text-neutral-600 dark:text-neutral-400">
+                                    <strong class="text-neutral-700 dark:text-neutral-300">细弯头尖镊子 (金属)</strong>：细尖头，用于插入网芯孔隙夹紧边缘吹火消除翘边（仅限断电离线使用）。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-neutral-500 focus:ring-neutral-400 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300 text-neutral-600 dark:text-neutral-400">
+                                    <strong class="text-neutral-700 dark:text-neutral-300">薄刃水口钳</strong>：普通水口钳剪辫子丝即可，死角修剪线脚选薄头（如 NS-06）；切忌拿剪刀剪钢丝。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-neutral-500 focus:ring-neutral-400 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300 text-neutral-600 dark:text-neutral-400">
+                                    <strong class="text-neutral-700 dark:text-neutral-300">外置手机微距镜头</strong>：夹片式微距头，拍清网芯间隙与氧化发黑成色，避免数码变焦糊成一团黑柱。
+                                </div>
+                            </label>
+
+                            <label class="flex items-start space-x-3 cursor-pointer group">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    <input type="checkbox" onchange="toggleToolItem(this)" class="w-4 h-4 rounded border-gray-300 text-neutral-500 focus:ring-neutral-400 bg-white/50 dark:bg-black/50 cursor-pointer">
+                                </div>
+                                <div class="text-xs tool-text-content transition-all duration-300 text-neutral-600 dark:text-neutral-400">
+                                    <strong class="text-neutral-700 dark:text-neutral-300">3% 医用双氧水 + 细试管刷</strong>：药店买小瓶装 3% 双氧水（避光），低功率微温除碳，切忌通红干烧时猛倒。
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="apple-glass p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-rose-500 text-sm">🚫</span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">免交智商税看板 (Anti-Gimmick)</h3>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5 border border-rose-500/10">
+                            <div class="font-bold text-rose-600 dark:text-rose-400">智商税 1：S网 / 太极网卷网辅助模具</div>
+                            <div class="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                导油取决于手搓对层间松紧和毛细微隙的感知；模具定死内孔孔径，彻底失去根据油品微调导油能力的余地。
+                            </div>
+                        </div>
+
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5 border border-rose-500/10">
+                            <div class="font-bold text-rose-600 dark:text-rose-400">智商税 2：金属定径套管 (插管火烧)</div>
+                            <div class="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                徒手卷制配合喷枪直接吹火即可完美氧化定型收边；金属套管阻挡火焰接触核心层且遮挡视线，毫无必要。
+                            </div>
+                        </div>
+
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5 border border-rose-500/10">
+                            <div class="font-bold text-rose-600 dark:text-rose-400">智商税 3：死记硬背别人的“完美数据”</div>
+                            <div class="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                个人折边宽度（甚至差 0.1mm）、搓网手感与芯片差异极大；学会根据气流与导油孔调网子的原理，远比抄袭长宽尺寸管用。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实战子模块 2: 烧网子 -->
+            <div id="sub-oxidize" class="practice-sub-view space-y-6">
+                <div class="mb-5">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">NIRVANA HEAT // Torch & Oxidation Mastery</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">烧网子核心速查与排错</h2>
+                    <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                        科学掌握不锈钢金属网表面氧化钝化绝缘层建立规律，厘清“绝缘不足”、“发热丝勒紧击穿”与“无绝缘台面/中轴接触短路”的本质区别。
+                    </p>
+                </div>
+
+                <div class="apple-glass p-5 sm:p-6 space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">一、滑动对比：网子氧化状态表</h3>
+                        </div>
+                        <span id="ox-stage-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            ★ 理想状态 (推荐)
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                        <div class="lg:col-span-5 apple-glass-sub p-5 rounded-2xl flex flex-col items-center justify-between relative overflow-hidden min-h-[170px]">
+                            <div class="w-full flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                                <span>MATERIAL FINISH</span>
+                                <span id="ox-temp-label">~750℃ (泛白微黄缓冷)</span>
+                            </div>
+                            
+                            <div id="ox-mesh-visual" class="w-28 h-28 rounded-2xl shadow-inner border border-white/20 transition-all duration-300 relative flex items-center justify-center overflow-hidden" style="background: radial-gradient(circle, #64748b 0%, #475569 50%, #334155 100%);">
+                                <div class="absolute inset-0 opacity-25" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 6px 6px;"></div>
+                                <span id="ox-visual-tag" class="text-xs font-mono font-bold text-white drop-shadow-md">哑光深灰</span>
+                            </div>
+
+                            <div class="text-[10px] text-neutral-500 font-mono mt-2 text-center" id="ox-finish-summary">灰褐 / 哑光水泥灰 (表面洁净无浮渣)</div>
+                        </div>
+
+                        <div class="lg:col-span-7 apple-glass-sub p-5 rounded-2xl space-y-3 flex flex-col justify-between">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-neutral-400">绝缘效果判定：</span>
+                                    <span id="ox-insul-verdict" class="font-bold text-emerald-500">极佳高绝缘（能耐受日常发热丝贴合）</span>
+                                </div>
+                                <div class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                    <strong class="text-neutral-800 dark:text-neutral-200">达成要诀：</strong>
+                                    <span id="ox-tips-text">大风门喷枪，卷起后集中加热至泛白微黄后自然在空气中冷却，生成厚度均一的钝化膜。</span>
+                                </div>
+                                <div class="text-xs text-amber-600 dark:text-amber-400/90 leading-relaxed bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                                    ⚠️ <strong>避坑提醒：</strong>
+                                    <span id="ox-warning-text">达成此状态后无需过度烧结；表面无多余附着碎屑，口感纯净无铁锈味。</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2">
+                                <div class="flex justify-between items-center text-xs mb-1">
+                                    <span class="text-neutral-400 text-[10px] font-mono">滑动对比各氧化阶段：</span>
+                                    <span id="ox-slider-val-lbl" class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">档位 3 / 4</span>
+                                </div>
+                                <input type="range" id="ox-slider" min="1" max="4" value="3" step="1" oninput="updateOxidizeState(this.value)" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                <div class="flex justify-between text-[10px] font-mono text-neutral-400 mt-1">
+                                    <span>1. 原始银白</span>
+                                    <span>2. 金/彩色</span>
+                                    <span class="text-blue-500 font-bold">3. 哑光深灰 ★</span>
+                                    <span>4. 焦黑掉渣</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="apple-glass p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">二、30秒排错诊断器 (点击即出结论)</h3>
+                        </div>
+                        <span class="text-[10px] font-mono text-neutral-400">即时物理推导引擎</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-2">
+                            <div class="font-semibold text-neutral-800 dark:text-neutral-200 text-[11px] flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                <span>1. 问题现象 (Symptom)</span>
+                            </div>
+                            <div class="space-y-1.5" id="ox-opt-fault">
+                                <button type="button" onclick="setOxOpt('fault', 'short')" class="ox-btn-fault active w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 transition">● 点火死短路 / 跳阻</button>
+                                <button type="button" onclick="setOxOpt('fault', 'leg_red')" class="ox-btn-fault w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 正负极抢先发红</button>
+                                <button type="button" onclick="setOxOpt('fault', 'spot_spark')" class="ox-btn-fault w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 局部发红跳火</button>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-2">
+                            <div class="font-semibold text-neutral-800 dark:text-neutral-200 text-[11px] flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                <span>2. 网子状态 (Appearance)</span>
+                            </div>
+                            <div class="space-y-1.5" id="ox-opt-color">
+                                <button type="button" onclick="setOxOpt('color', 'rainbow')" class="ox-btn-color active w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 transition">● 偏金 / 彩色回火态</button>
+                                <button type="button" onclick="setOxOpt('color', 'grey')" class="ox-btn-color w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 哑光灰黑</button>
+                                <button type="button" onclick="setOxOpt('color', 'silver')" class="ox-btn-color w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 没怎么变色 (偏银)</button>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-2">
+                            <div class="font-semibold text-neutral-800 dark:text-neutral-200 text-[11px] flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                <span>3. 结构与手法 (Deck / Tension)</span>
+                            </div>
+                            <div class="space-y-1.5" id="ox-opt-structure">
+                                <button type="button" onclick="setOxOpt('structure', 'tight')" class="ox-btn-struct w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 发热丝勒得很紧 / 网子形变</button>
+                                <button type="button" onclick="setOxOpt('structure', 'no_insul')" class="ox-btn-struct w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition">○ 无绝缘台面 / 中轴直触</button>
+                                <button type="button" onclick="setOxOpt('structure', 'normal')" class="ox-btn-struct active w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 transition">● 正常自然贴合</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="apple-glass-sub p-4 rounded-xl border border-black/10 dark:border-white/10 space-y-2 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono tracking-wider uppercase text-neutral-400">Diagnosis Output // 即时排错结论</span>
+                            <span id="ox-result-badge" class="px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">浅层氧化被击穿</span>
+                        </div>
+                        <div class="text-xs space-y-1.5">
+                            <div>
+                                <strong class="text-neutral-900 dark:text-neutral-100">物理诱因深度剖析：</strong>
+                                <span id="ox-result-reason" class="text-neutral-600 dark:text-neutral-400">单层平铺烧导致散热过快，网面温度不足，只形成了极薄的浅层彩色氧化膜，耐压不足击穿短路。</span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+                                <strong class="text-blue-600 dark:text-blue-400 block mb-1">🛠 针对性排错动作：</strong>
+                                <div id="ox-result-action" class="text-neutral-600 dark:text-neutral-300 text-[11px] leading-relaxed">
+                                    不要平铺烧！将网子卷成型后，用大风门喷枪对着中间段集中加热至泛白微黄，使其彻底均匀变为深灰色后自然冷却。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="apple-glass p-5 sm:p-6 space-y-3">
+                    <div class="flex items-center space-x-2 pb-2.5 border-b border-black/[0.06] dark:border-white/[0.08]">
+                        <span class="text-blue-500 font-bold text-xs">📌</span>
+                        <h3 class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider font-mono">新手必记 3 条实操要点 (Three Golden Truths)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                            <div class="font-bold text-neutral-800 dark:text-neutral-100 text-xs flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                <span>1. 卷起烧，别摊开</span>
+                            </div>
+                            <div class="text-neutral-500 text-[11px] leading-relaxed">
+                                单层不锈钢网散热极快，摊开平铺烧无法聚热，只能烧出毫无绝缘性的彩色薄膜。必须卷出实体厚度后集中烧结才能蓄满温度。
+                            </div>
+                        </div>
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                            <div class="font-bold text-neutral-800 dark:text-neutral-100 text-xs flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                <span>2. 贴上去，别勒死</span>
+                            </div>
+                            <div class="text-neutral-500 text-[11px] leading-relaxed">
+                                发热丝与网芯讲求“自然相切服帖”。若使蛮力死勒导致网芯压扁形变，坚硬的发热丝会像刀刃一样直接切破微米氧化膜引发偏流。
+                            </div>
+                        </div>
+                        <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                            <div class="font-bold text-neutral-800 dark:text-neutral-100 text-xs flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                <span>3. 防内部短路 (反卷)</span>
+                            </div>
+                            <div class="text-neutral-500 text-[11px] leading-relaxed">
+                                在避雷针中轴或金属台面结构中，若外壁烧好但内部碰触中轴，可将网芯拆开<strong>反向往里卷</strong>，把烧得最厚实的外壁绝缘层贴向中轴隔离短路。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实战子模块 3: 调整发热 -->
+            <div id="sub-diagnostics" class="practice-sub-view">
+                <div class="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">NIRVANA TUNING // Heating Tuning & Fault Tree</span>
+                        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">调热流程模拟与跳阻排障</h2>
+                        <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                            解决新手“低功率调好、一上油/高压就跳阻发红”的认知盲区。遵循“低功率初调 → 3.6V 升压二次调校”核心法则。
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-1 p-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] apple-glass-sub self-start md:self-auto">
+                        <button onclick="switchDiagSubTab('sim')" id="diag-subtab-sim" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all">调热流程模拟器</button>
+                        <button onclick="switchDiagSubTab('tree')" id="diag-subtab-tree" class="px-4 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">跳阻自检诊断树</button>
+                    </div>
+                </div>
+
+                <!-- 调热核心模块 A: 调热流程模拟器 -->
+                <div id="diag-view-sim" class="diag-sub-view active space-y-5">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                        <div class="lg:col-span-7 apple-glass p-5 flex flex-col justify-between relative overflow-hidden">
+                            <div class="oled-panel rounded-2xl p-4 mb-4 flex items-center justify-between font-mono select-none">
+                                <div class="flex items-baseline space-x-4">
+                                    <div>
+                                        <div class="text-[9px] uppercase tracking-wider text-neutral-500">Resistance</div>
+                                        <div class="text-2xl sm:text-3xl font-bold" id="oled-val-r">0.92 <span class="text-sm font-normal">Ω</span></div>
+                                    </div>
+                                    <div class="border-l border-white/10 pl-4">
+                                        <div class="text-[9px] uppercase tracking-wider text-neutral-500">Output</div>
+                                        <div class="text-sm sm:text-base font-semibold text-neutral-300" id="oled-val-v">0.0 V / 0.0 W</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="oled-status-badge" class="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-neutral-700 bg-neutral-900 text-neutral-400">
+                                        STANDBY // 待机
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="w-full flex-1 aspect-[4/3] rounded-2xl bg-neutral-950/60 border border-black/10 dark:border-white/10 relative flex items-center justify-center p-3 overflow-hidden">
+                                <svg viewBox="0 0 320 240" class="w-full h-full max-h-[300px] select-none drop-shadow-2xl">
+                                    <defs>
+                                        <linearGradient id="simMeshGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#242830"/>
+                                            <stop offset="30%" stop-color="#3c4350"/>
+                                            <stop offset="70%" stop-color="#485060"/>
+                                            <stop offset="100%" stop-color="#1f232b"/>
+                                        </linearGradient>
+                                        <linearGradient id="simSteelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#e2e8f0"/>
+                                            <stop offset="50%" stop-color="#94a3b8"/>
+                                            <stop offset="100%" stop-color="#475569"/>
+                                        </linearGradient>
+                                        <filter id="hotspotGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                            <feGaussianBlur stdDeviation="3.5" result="blur1"/>
+                                            <feGaussianBlur stdDeviation="8" result="blur2"/>
+                                            <feMerge>
+                                                <feMergeNode in="blur2"/>
+                                                <feMergeNode in="blur1"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+
+                                    <rect x="136" y="24" width="48" height="192" rx="4" fill="url(#simMeshGrad)" stroke="#555f70" stroke-width="1.2"/>
+                                    <g stroke="rgba(255,255,255,0.08)" stroke-width="0.8">
+                                        <line x1="144" y1="24" x2="144" y2="216"/>
+                                        <line x1="152" y1="24" x2="152" y2="216"/>
+                                        <line x1="160" y1="24" x2="160" y2="216"/>
+                                        <line x1="168" y1="24" x2="168" y2="216"/>
+                                        <line x1="176" y1="24" x2="176" y2="216"/>
+                                    </g>
+
+                                    <rect x="52" y="30" width="16" height="180" rx="3" fill="url(#simSteelGrad)"/>
+                                    <circle cx="60" cy="54" r="11" fill="#cbd5e1" stroke="#334155" stroke-width="2"/>
+                                    <text x="60" y="58" font-size="9" font-family="monospace" font-weight="bold" fill="#0f172a" text-anchor="middle">+</text>
+
+                                    <circle cx="260" cy="186" r="14" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+                                    <circle cx="260" cy="186" r="11" fill="url(#simSteelGrad)"/>
+                                    <line x1="254" y1="180" x2="266" y2="192" stroke="#1e293b" stroke-width="2"/>
+                                    <line x1="266" y1="180" x2="254" y2="192" stroke="#1e293b" stroke-width="2"/>
+                                    <text x="260" y="214" font-size="8.5" font-family="monospace" font-weight="bold" fill="#94a3b8" text-anchor="middle">NEG -</text>
+
+                                    <path id="svg-wire-lead-neg" d="M 252 184 C 224 186, 200 156, 184 140" fill="none" stroke="#475569" stroke-width="4.5" stroke-linecap="round"/>
+                                    <path id="svg-coil-turn-1" d="M 136 142 Q 160 146 184 140" fill="none" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                                    <path id="svg-coil-turn-2" d="M 136 136 Q 160 140 184 134" fill="none" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                                    <path id="svg-coil-turn-3" d="M 136 130 Q 160 134 184 128" fill="none" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                                    <path id="svg-coil-turn-4" d="M 136 124 Q 160 128 184 122" fill="none" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                                    <path id="svg-wire-lead-pos" d="M 136 124 C 108 114, 85 76, 68 56" fill="none" stroke="#475569" stroke-width="4.5" stroke-linecap="round"/>
+
+                                    <circle id="svg-hotspot-pos" cx="72" cy="57" r="5" fill="#fffb8f" opacity="0" filter="url(#hotspotGlow)"/>
+                                    <circle id="svg-hotspot-mesh" cx="168" cy="131" r="4.5" fill="#fffb8f" opacity="0" filter="url(#hotspotGlow)"/>
+
+                                    <g id="svg-guide-pointer" opacity="0" transform="translate(168, 105)">
+                                        <rect x="-36" y="-18" width="72" height="16" rx="4" fill="#ff3b30" opacity="0.9"/>
+                                        <text x="0" y="-7" fill="#ffffff" font-size="7.5" font-family="sans-serif" font-weight="bold" text-anchor="middle">高温微短路点</text>
+                                        <polygon points="-3,-2 3,-2 0,2" fill="#ff3b30"/>
+                                    </g>
+                                </svg>
+
+                                <button id="btn-sim-fire" class="absolute bottom-4 right-4 z-20 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black font-semibold shadow-2xl flex flex-col items-center justify-center select-none active:scale-90 hover:scale-105 transition-all duration-200 cursor-pointer border border-white/10" style="touch-action: none;">
+                                    <span class="text-xs font-mono font-bold tracking-wider">FIRE</span>
+                                    <span class="text-[7px] opacity-70 font-mono mt-0.5">长按</span>
+                                </button>
+                            </div>
+
+                            <div id="heat-sim-feedback" class="apple-glass-sub p-3 rounded-xl mt-3 text-xs leading-relaxed transition-all">
+                                💡 <strong>调热指引：</strong>当前为冷态。请保持电压在【初调档 (2.7V)】，长按【FIRE】进行低功率点火。
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 apple-glass p-5 flex flex-col justify-between space-y-4">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        <span>调热实操控制台</span>
+                                    </h3>
+                                    <button onclick="resetHeatSim()" class="text-[11px] font-mono text-neutral-400 hover:text-blue-500 transition">
+                                        ↺ 重置仿真
+                                    </button>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200">工作电压档位 (Voltage Gear)</div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button onclick="setHeatGear('low')" id="btn-gear-low" class="p-2.5 rounded-xl border border-blue-500/80 bg-blue-500/15 text-blue-600 dark:text-blue-400 font-semibold text-xs flex flex-col text-left transition">
+                                            <span class="text-[10px] text-neutral-400 font-mono">STEP 1</span>
+                                            <span>初调档 (2.7V / 10W)</span>
+                                        </button>
+                                        <button onclick="setHeatGear('high')" id="btn-gear-high" disabled class="p-2.5 rounded-xl apple-glass-sub text-neutral-400 font-medium text-xs flex flex-col text-left opacity-40 cursor-not-allowed transition">
+                                            <div class="flex justify-between items-center w-full">
+                                                <span class="text-[10px] font-mono">STEP 2</span>
+                                                <span id="gear-lock-badge" class="text-[9px]">🔒 锁定中</span>
+                                            </div>
+                                            <span>工作档 (3.6V / 14.4W)</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200">故障消除工具箱 (Intervention Tools)</div>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <button onclick="applyHeatTool('screw')" id="btn-tool-screw" class="p-3 rounded-xl apple-glass-sub hover:bg-black/5 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-200 text-xs font-medium flex items-center justify-between transition hover:scale-[1.01] active:scale-[0.99]">
+                                            <div class="flex items-center space-x-2.5">
+                                                <span class="text-base">🛠️</span>
+                                                <div class="text-left">
+                                                    <div class="font-semibold text-neutral-900 dark:text-neutral-100">检查 / 理平螺丝压脚</div>
+                                                    <div class="text-[10px] text-neutral-400">消除正负极柱虚接，理顺出线段</div>
+                                                </div>
+                                            </div>
+                                            <span class="text-[10px] font-mono text-neutral-400">针对正极红</span>
+                                        </button>
+
+                                        <button onclick="applyHeatTool('scrape')" id="btn-tool-scrape" class="p-3 rounded-xl apple-glass-sub hover:bg-black/5 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-200 text-xs font-medium flex items-center justify-between transition hover:scale-[1.01] active:scale-[0.99]">
+                                            <div class="flex items-center space-x-2.5">
+                                                <span class="text-base">🪡</span>
+                                                <div class="text-left">
+                                                    <div class="font-semibold text-neutral-900 dark:text-neutral-100">镊子轻刮网面 / 微振发热丝</div>
+                                                    <div class="text-[10px] text-neutral-400">破坏高温微短路旁路，恢复绝缘层</div>
+                                                </div>
+                                            </div>
+                                            <span class="text-[10px] font-mono text-neutral-400">消除刺亮红点</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 调热核心模块 B: 跳阻与发热异常自检树 -->
+                <div id="diag-view-tree" class="diag-sub-view space-y-5">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        <div class="lg:col-span-5 apple-glass p-5 space-y-3">
+                            <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                                <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">选择您遇到的故障表象</h3>
+                                <span class="text-[10px] font-mono text-neutral-400">6 种经典疑难杂症</span>
+                            </div>
+
+                            <div class="space-y-2" id="diag-tree-tag-list">
+                                <button onclick="selectDiagTree('A')" id="btn-tree-tag-A" class="tree-tag-btn active w-full p-3 rounded-xl text-left text-xs font-medium apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-between transition">
+                                    <span>A. 正/负极螺丝下方冒火花或单点发红</span><span>➜</span>
+                                </button>
+                                <button onclick="selectDiagTree('B')" id="btn-tree-tag-B" class="tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition">
+                                    <span>B. 刚做好发热均匀，一上油/抽几口正极发红</span><span>➜</span>
+                                </button>
+                                <button onclick="selectDiagTree('C')" id="btn-tree-tag-C" class="tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition">
+                                    <span>C. 点火时间越长，电阻一路往下跌</span><span>➜</span>
+                                </button>
+                                <button onclick="selectDiagTree('D')" id="btn-tree-tag-D" class="tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition">
+                                    <span>D. 罩上雾化仓罩子后电阻骤降/跳动</span><span>➜</span>
+                                </button>
+                                <button onclick="selectDiagTree('E')" id="btn-tree-tag-E" class="tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition">
+                                    <span>E. 走空走线（丝脚悬空段）单独发红</span><span>➜</span>
+                                </button>
+                                <button onclick="selectDiagTree('F')" id="btn-tree-tag-F" class="tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition">
+                                    <span>F. 主机偶发报低电量/阻值忽高忽低</span><span>➜</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-7 apple-glass p-6 space-y-4">
+                            <div class="pb-3 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Root Cause & Resolution</span>
+                                    <h3 id="tree-detail-title" class="text-base font-semibold text-neutral-900 dark:text-neutral-100">A. 正/负极螺丝下方冒火花或单点发红</h3>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">接触面微虚</span>
+                            </div>
+
+                            <div class="apple-glass-sub p-4 rounded-xl space-y-1.5">
+                                <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5">
+                                    <span class="text-blue-500">🔬</span><span>物理机理深度剖析</span>
+                                </div>
+                                <p id="tree-detail-physics" class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                    螺丝拧紧时产生点接触虚接，或者锁紧力度过大（蛮力拧紧）导致 Rope 缆绳内部微细线束被剪切损伤，局部有效横截面积骤降，接触电阻极大，电流流经时根据焦耳定律产生剧烈过载发热与微型电弧火花。
+                                </p>
+                            </div>
+
+                            <div class="apple-glass-sub p-4 rounded-xl space-y-2.5">
+                                <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5">
+                                    <span class="text-emerald-500">🛠️</span><span>解决方案与排查优先级清单</span>
+                                </div>
+                                <div id="tree-detail-actions" class="text-xs text-neutral-600 dark:text-neutral-400 space-y-2 leading-relaxed"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实战子模块 4: 绕丝规范 -->
+            <div id="sub-topology" class="practice-sub-view space-y-6">
+                <div class="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">NIRVANA DECK // Deck Topology & Winding</span>
+                        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">绕丝规范 (X型交叉)</h2>
+                        <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                            线圈与网身的同轴贴合决定导油寿命与发热纯净度。可自由切换先芯后丝与先丝后芯两种装配手法，掌握紧固度分级与应急自救技巧。
+                        </p>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5 p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] apple-glass-sub self-start md:self-auto">
+                        <button onclick="setCoilTopologyMode('core-first')" id="btn-topo-mode-core" class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all flex flex-col items-center">
+                            <span class="text-xs">先芯后丝</span>
+                            <span class="text-[9px] font-normal opacity-70 mt-0.5">零散架风险 · 新手推荐</span>
+                        </button>
+                        <button onclick="setCoilTopologyMode('wire-first')" id="btn-topo-mode-wire" class="px-4 py-2 rounded-xl text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all flex flex-col items-center">
+                            <span class="text-xs">先丝后芯</span>
+                            <span class="text-[9px] font-normal opacity-70 mt-0.5">极致贴合 · 需喷枪退火</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div id="topology-flow-core-first" class="space-y-3.5">
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-blue-500/20">01</div>
+                                <div class="space-y-1">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 1：插芯自检</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">基准定位</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        将烧透钝化好的网芯垂直下推至导油孔底部，底端预留 <strong>0.1mm 严格悬空</strong>防触底短路。
+                                    </p>
+                                    <div class="text-[11px] text-neutral-500 pt-0.5 flex items-center space-x-1">
+                                        <span class="text-emerald-500">✓ 验收标准：</span>
+                                        <span>与孔壁具备充沛摩擦阻尼力，轻微倒置或轻晃不可自行脱出。</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-blue-500/20">02</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex flex-wrap items-center gap-2">
+                                        <span>步骤 2：锁死负极</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-neutral-900 dark:bg-white text-white dark:text-black shadow-sm">紧固度：100% 彻底锁死</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        发热丝穿入负极固定卡槽，起绕高度与底座绝缘端面平齐，出线段预留微量平顺相切丝脚。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-neutral-100/60 dark:bg-neutral-900/60 text-neutral-500 dark:text-neutral-400 text-xs">
+                                        ⚠️ <strong>力道把控：</strong>负极螺丝在此工序必须一次性锁死到位，后续绕线全程严禁再次扭动负极。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-blue-500/20">03</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 3：越障绕线与逐圈下压</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">由下往上顺绕</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        顺网身由下往上顺时针绕线，手势适当抬高越过中心正极柱干涉；每顺绕一圈，用平头镊子顺网壁向下轻推靠拢，圈圈紧密贴排。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400/90 text-xs leading-relaxed">
+                                        🚫 <strong>避坑提示：</strong>时刻监控网芯垂直度，手部仅负责自然贴合导向，禁止单向蛮力拉扯导致网芯倾斜或挤扁。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-blue-500/20">04</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex flex-wrap items-center gap-2">
+                                        <span>步骤 4：正极顺向限位</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">紧固度：70%~80% 七八分紧</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        发热丝顺着正极螺母旋紧方向顺势导入卡槽；手指轻按线圈顶部防止错位，检查全圈贴合度。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400/90 text-xs leading-relaxed">
+                                        🚫 <strong>避坑提示：</strong>严禁向外死力拽拉发热丝，防止拉偏网身或勒裂氧化膜产生正极爆红（红须）。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-blue-500/20">05</div>
+                                <div class="space-y-2">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 5：低瓦排热点</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">均匀透红</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        设备功率严格锁定在 <strong>8~10W</strong> 进行微弱脉冲点火；若发现局部微短路发亮，使用圆头陶瓷镊在接触边缘轻刮微振，引导热量由中心向两端均匀发散。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium flex items-center space-x-2">
+                                        <span>⚡</span>
+                                        <span>首次点火严格锁定 8~10W，切勿高功率干烧以防击穿绝缘件或烧断发热丝。</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="topology-flow-wire-first" class="hidden space-y-3.5">
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-amber-500/20">01</div>
+                                <div class="space-y-1">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 1：丝材高温退火</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">消除回弹</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        发热丝绕制前使用纯丁烷防风喷枪整体均匀扫火烧红并自然缓冷。
+                                    </p>
+                                    <div class="text-[11px] text-neutral-500 pt-0.5">
+                                        🔬 <strong>物理原理：</strong>消除冷加工金属内应力与机械弹性，使丝身彻底软化，消除后续回弹散架力。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-amber-500/20">02</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 2：双向对滚绕线 (+1 圈冗余)</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">张力均整</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        左手捏住网芯旋转、右手协同捏住发热丝对滚反向进丝，保持张力均匀。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs">
+                                        💡 <strong>核心技巧：</strong>若目标装配为 4 圈，此步务必绕制 <strong>5 圈</strong>；绕完后用双手指腹轻搓使间隙完全闭合。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-amber-500/20">03</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 3：夹持定型与去痕</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">无痕定型</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        平口无牙钳轻夹最外侧冗余丝脚（避免夹伤主体发热段），喷枪避开丝脚将线圈整体吹火烧透定型。
+                                    </p>
+                                    <div class="text-[11px] text-neutral-500 pt-0.5">
+                                        🛠 <strong>去痕处理：</strong>定型冷却后，反向退出受夹痕损伤的多余 1 圈，保留完全无机械折痕的发热段。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-amber-500/20">04</div>
+                                <div class="space-y-1.5">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                        <span>步骤 4：手指环抱护圈入仓</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">平稳下推</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        两指指腹虚拢环抱护住整个线圈圆周，尖嘴镊子轻夹网芯底端，垂直平稳推入油仓孔底。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400/90 text-xs">
+                                        🚫 <strong>核心要领：</strong>入仓装配全程严禁外力碰撞、剐蹭线圈或接触极柱导致脱落变形。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-5 rounded-2xl flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold flex items-center justify-center shrink-0 border border-amber-500/20">05</div>
+                                <div class="space-y-2">
+                                    <div class="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex flex-wrap items-center gap-2">
+                                        <span>步骤 5：双极锁紧与调火</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-neutral-900 dark:bg-white text-white dark:text-black shadow-sm">负极：100% 锁死</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">正极：7~8 分紧</span>
+                                    </div>
+                                    <p class="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                        拉直负极丝脚至平顺后彻底锁死（100% 紧固）；微调线圈高度，正极丝顺螺丝旋紧方向卡入锁至 7 分紧，通电复核无松脱后再彻底锁固。
+                                    </p>
+                                    <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium flex items-center space-x-2">
+                                        <span>⚡</span>
+                                        <span>首次点火严格锁定 8~10W，切勿高功率干烧以防击穿绝缘件或烧断发热丝。</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="apple-glass p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">翻车排查急救箱 (Troubleshooting Drawer)</h3>
+                        </div>
+                        <span class="text-[10px] font-mono text-neutral-400">单项互斥自检机制</span>
+                    </div>
+
+                    <div class="space-y-2.5" id="trouble-accordion-group">
+                        <div class="trouble-drawer apple-glass-sub rounded-2xl overflow-hidden border border-black/[0.04] dark:border-white/[0.04] transition-all">
+                            <button onclick="toggleTroubleItem(0)" class="w-full p-4 text-left flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                    <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">正极端单圈持续发红（红须）</span>
+                                </div>
+                                <span id="trouble-chevron-0" class="text-xs text-neutral-400 transition-transform duration-300">▼</span>
+                            </button>
+                            <div id="trouble-body-0" class="drawer-content max-h-0 overflow-hidden opacity-0">
+                                <div class="p-4 pt-0 text-xs space-y-2 text-neutral-600 dark:text-neutral-400 border-t border-black/[0.04] dark:border-white/[0.04]">
+                                    <div><strong class="text-rose-500">成因：</strong>正极丝拉得太死，压破网芯微米氧化膜短路；或正极出线悬空跨度过长，缺乏油液冷却。</div>
+                                    <div class="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-[11px] leading-relaxed">
+                                        🛠 <strong>针对解法：</strong>彻底断电，拧松正极螺丝，用镊子略微向网芯方向回推发热丝释放轴向拉力，理顺平缓弧度后重新拧至 8 分紧。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trouble-drawer apple-glass-sub rounded-2xl overflow-hidden border border-black/[0.04] dark:border-white/[0.04] transition-all">
+                            <button onclick="toggleTroubleItem(1)" class="w-full p-4 text-left flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                    <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">线圈入仓时散架 / 回弹变形</span>
+                                </div>
+                                <span id="trouble-chevron-1" class="text-xs text-neutral-400 transition-transform duration-300">▼</span>
+                            </button>
+                            <div id="trouble-body-1" class="drawer-content max-h-0 overflow-hidden opacity-0">
+                                <div class="p-4 pt-0 text-xs space-y-2 text-neutral-600 dark:text-neutral-400 border-t border-black/[0.04] dark:border-white/[0.04]">
+                                    <div><strong class="text-amber-500">成因：</strong>发热丝未充分高温退火残留机械弹性；或推入导油孔时外缘刮蹭孔壁，手势未做好虚拢保护。</div>
+                                    <div class="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-[11px] leading-relaxed">
+                                        🛠 <strong>针对解法：</strong>变形严重的废丝严禁强行复用，换线并使用喷枪彻底烧透软化；装配入仓时双手指腹全程虚拢环抱线圈外围护送。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trouble-drawer apple-glass-sub rounded-2xl overflow-hidden border border-black/[0.04] dark:border-white/[0.04] transition-all">
+                            <button onclick="toggleTroubleItem(2)" class="w-full p-4 text-left flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                                    <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">点火电阻异常偏低 / 持续微短路打火</span>
+                                </div>
+                                <span id="trouble-chevron-2" class="text-xs text-neutral-400 transition-transform duration-300">▼</span>
+                            </button>
+                            <div id="trouble-body-2" class="drawer-content max-h-0 overflow-hidden opacity-0">
+                                <div class="p-4 pt-0 text-xs space-y-2 text-neutral-600 dark:text-neutral-400 border-t border-black/[0.04] dark:border-white/[0.04]">
+                                    <div><strong class="text-blue-500">成因：</strong>网芯绝缘钝化层未烧透；或线圈贴合过松产生间歇性虚接微弧打火。</div>
+                                    <div class="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-[11px] leading-relaxed">
+                                        🛠 <strong>针对解法：</strong>设备锁定 8~10W 低瓦短促脉冲点火，陶瓷镊在跳火交界面轻刮微振；若久调不消，说明网芯未钝化，必须拔出重新扫火。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trouble-drawer apple-glass-sub rounded-2xl overflow-hidden border border-black/[0.04] dark:border-white/[0.04] transition-all">
+                            <button onclick="toggleTroubleItem(3)" class="w-full p-4 text-left flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                                    <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">网芯整体被拉斜</span>
+                                </div>
+                                <span id="trouble-chevron-3" class="text-xs text-neutral-400 transition-transform duration-300">▼</span>
+                            </button>
+                            <div id="trouble-body-3" class="drawer-content max-h-0 overflow-hidden opacity-0">
+                                <div class="p-4 pt-0 text-xs space-y-2 text-neutral-600 dark:text-neutral-400 border-t border-black/[0.04] dark:border-white/[0.04]">
+                                    <div><strong class="text-purple-500">成因：</strong>网芯卷制偏细，与导油孔内径配合间隙过大；或锁紧螺丝时单向手力拉扯过猛。</div>
+                                    <div class="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-[11px] leading-relaxed">
+                                        🛠 <strong>针对解法：</strong>重新卷制外径更匹配的网芯（以推入孔内有轻微阻尼为准）；绕线与锁紧时手部仅做定位，禁止施加横向拉扯力。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实战子模块 5: 裁剪数据 -->
+            <div id="sub-blueprint" class="practice-sub-view">
+                <div class="mb-6">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">NIRVANA SPEC // Specifications Database</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">网芯裁剪数据</h1>
+                    <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                        收录经典目数、展开宽与高度（更短边为高 H）、vm 折数及口吸/肺吸工况规范。
+                    </p>
+                </div>
+
+                <div class="relative mb-6 z-30" id="model-picker-wrapper">
+                    <div onclick="toggleModelDropdown(event)" class="apple-glass p-3.5 sm:p-4 cursor-pointer flex items-center justify-between hover:scale-[1.006] active:scale-[0.995] transition-all">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-semibold border border-blue-500/20">⚙</div>
+                            <div>
+                                <div class="text-[10px] font-mono tracking-wider uppercase text-neutral-400">当前选择机型</div>
+                                <div class="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+                                    <span id="picker-cur-name">马格南 (Magnum)</span>
+                                    <span id="picker-cur-badge" class="text-[10px] font-normal px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">2 种方案</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                            <span class="hidden sm:inline">切换机型</span>
+                            <div id="picker-chevron" class="w-6 h-6 rounded-full apple-glass-sub flex items-center justify-center text-xs transition-transform duration-300">▼</div>
+                        </div>
+                    </div>
+
+                    <div id="model-picker-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 apple-glass p-3 shadow-2xl z-40 border border-black/[0.08] dark:border-white/[0.12] transition-all">
+                        <div class="relative mb-2.5">
+                            <input type="text" id="model-search-input" oninput="filterModelList(this.value)" placeholder="搜索机型名称..." class="w-full apple-glass-sub px-3.5 py-2 text-xs rounded-xl outline-none text-neutral-900 dark:text-white placeholder-neutral-400 border border-black/[0.06] dark:border-white/[0.08]">
+                        </div>
+                        <div id="model-options-list" class="max-h-64 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    <div class="lg:col-span-5 apple-glass p-5 space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                            <div>
+                                <span class="text-[10px] font-mono tracking-wider text-neutral-400 uppercase">Selected Model</span>
+                                <h3 id="tab-model-title" class="text-base font-semibold text-neutral-900 dark:text-neutral-100">马格南 (Magnum)</h3>
+                            </div>
+                            <span id="tab-model-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">2 种方案</span>
+                        </div>
+                        <div id="sub-scheme-container" class="space-y-2"></div>
+                    </div>
+
+                    <div class="lg:col-span-7 apple-glass p-6">
+                        <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08] mb-5">
+                            <div>
+                                <span class="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Blueprint Specs</span>
+                                <div id="card-scheme-name" class="text-base font-semibold text-neutral-900 dark:text-neutral-100">马格南 - 方案 1</div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span id="card-draw" class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">口吸 (MTL)</span>
+                                <span id="card-mesh" class="px-3 py-1 rounded-full text-xs font-mono font-medium apple-glass-sub text-neutral-800 dark:text-neutral-200">#200目</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-2xl p-6 sm:p-8 mb-5 apple-glass-sub flex flex-col items-center justify-center">
+                            <div class="text-[10px] uppercase font-mono tracking-widest text-neutral-400 mb-2">Unrolled Dimensions // 展开尺寸</div>
+                            <div class="flex items-center space-x-8 font-mono">
+                                <div class="text-center">
+                                    <div class="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" id="card-w">25.0</div>
+                                    <div class="text-[11px] text-neutral-500 mt-1">展开宽 (mm) / <span id="card-w-cm" class="font-semibold text-neutral-800 dark:text-neutral-200">2.5</span>cm</div>
+                                </div>
+                                <div class="text-neutral-300 dark:text-neutral-700 text-3xl font-light">×</div>
+                                <div class="text-center">
+                                    <div class="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" id="card-h">21.0</div>
+                                    <div class="text-[11px] text-neutral-500 mt-1">展开高 (mm) / <span id="card-h-cm" class="font-semibold text-neutral-800 dark:text-neutral-200">2.1</span>cm</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 px-3.5 py-1.5 rounded-full apple-glass text-xs font-mono text-neutral-700 dark:text-neutral-300 flex items-center space-x-2">
+                                <span class="text-neutral-400">折数规格：</span>
+                                <span id="card-vm" class="font-semibold text-blue-600 dark:text-blue-400">4vm</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                            <div class="p-3 apple-glass-sub">
+                                <span class="text-neutral-400 block mb-0.5 text-[10px]">抽吸模式定位</span>
+                                <span id="card-draw-detail" class="text-neutral-900 dark:text-neutral-100 font-semibold">口吸 (MTL 紧实吸阻)</span>
+                            </div>
+                            <div class="p-3 apple-glass-sub">
+                                <span class="text-neutral-400 block mb-0.5 text-[10px]">仓底安全净距</span>
+                                <span class="text-neutral-900 dark:text-neutral-100 font-semibold">悬空 0.1mm 绝不触底</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- 页脚版权与厂牌信息（含 iOS 底部安全区与微信栏自适应） -->
+    <footer class="w-full py-5 text-center text-xs text-neutral-400 dark:text-neutral-600 border-t border-black/[0.04] dark:border-white/[0.06] relative z-10 font-mono" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
+        NIRVANA VAPE LABEL © 2026 // Genesis Hub 实战操作工坊
+    </footer>
+
+    <!-- 逻辑脚本 -->
+    <script>
+        // ----------------------------------------------------
+        // 1. 拦截 iOS/微信双指缩放与手势放大
+        // ----------------------------------------------------
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // ----------------------------------------------------
+        // 2. 系统模式动态监听与外观三态管理 (Auto -> Dark -> Light -> Auto)
+        // ----------------------------------------------------
+        var currentThemeMode = 'auto'; // 'auto' | 'dark' | 'light'
+        var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            var icon = document.getElementById('theme-icon');
+            var btn = document.getElementById('btn-theme-toggle');
+            if (!icon) return;
+
+            if (currentThemeMode === 'auto') {
+                icon.innerText = '🌓';
+                if (btn) btn.title = '外观模式：跟随系统 (点击切换)';
+            } else if (currentThemeMode === 'dark') {
+                icon.innerText = '🌙';
+                if (btn) btn.title = '外观模式：深色模式 (点击切换)';
+            } else {
+                icon.innerText = '☀';
+                if (btn) btn.title = '外观模式：浅色模式 (点击切换)';
+            }
+        }
+
+        function initTheme() {
+            try {
+                var saved = localStorage.getItem('genesis_theme_mode');
+                if (saved === 'dark' || saved === 'light') {
+                    currentThemeMode = saved;
+                } else {
+                    currentThemeMode = 'auto';
+                }
+            } catch(e) {
+                currentThemeMode = 'auto';
+            }
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+
+            var handleMediaChange = function(e) {
+                if (currentThemeMode === 'auto') {
+                    applyTheme(e.matches);
+                }
+            };
+
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleMediaChange);
+            } else if (mediaQuery.addListener) {
+                mediaQuery.addListener(handleMediaChange);
+            }
+        }
+
+        function toggleTheme() {
+            if (currentThemeMode === 'auto') {
+                currentThemeMode = mediaQuery.matches ? 'light' : 'dark';
+            } else if (currentThemeMode === 'dark') {
+                currentThemeMode = 'light';
+            } else if (currentThemeMode === 'light') {
+                currentThemeMode = 'auto';
+            }
+
+            try {
+                if (currentThemeMode === 'auto') {
+                    localStorage.removeItem('genesis_theme_mode');
+                } else {
+                    localStorage.setItem('genesis_theme_mode', currentThemeMode);
+                }
+            } catch(e) {}
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+        }
+
+        // ----------------------------------------------------
+        // 3. 实战子选项卡切换路由控制
+        // ----------------------------------------------------
+        var curPracticeTab = 'sub-tools';
+
+        function switchPracticeTab(subId) {
+            curPracticeTab = subId;
+            var subViews = ['sub-tools', 'sub-blueprint', 'sub-oxidize', 'sub-topology', 'sub-diagnostics'];
+            for (var i = 0; i < subViews.length; i++) {
+                var id = subViews[i];
+                var el = document.getElementById(id);
+                var btn = document.getElementById('p-nav-' + id);
+                if (el) {
+                    if (id === subId) { el.classList.remove('hidden'); el.classList.add('active'); }
+                    else { el.classList.remove('active'); el.classList.add('hidden'); }
+                }
+                if (btn) {
+                    if (id === subId) {
+                        btn.className = "px-4 sm:px-5 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all whitespace-nowrap relative z-10";
+                    } else {
+                        btn.className = "px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10";
+                    }
+                }
+            }
+            if (subId === 'sub-diagnostics') {
+                switchDiagSubTab(curDiagSubTab);
+            } else if (subId === 'sub-oxidize') {
+                var sliderEl = document.getElementById('ox-slider');
+                updateOxidizeState(sliderEl ? sliderEl.value : 3);
+            } else if (subId === 'sub-topology') {
+                setCoilTopologyMode(currentTopologyMode);
+            }
+        }
+
+        // ----------------------------------------------------
+        // 4. 绕丝规范模块逻辑 (双模式卡片流 + 互斥折叠急救箱)
+        // ----------------------------------------------------
+        var currentTopologyMode = 'core-first';
+
+        function setCoilTopologyMode(mode) {
+            currentTopologyMode = mode;
+            var flowCore = document.getElementById('topology-flow-core-first');
+            var flowWire = document.getElementById('topology-flow-wire-first');
+            var btnCore = document.getElementById('btn-topo-mode-core');
+            var btnWire = document.getElementById('btn-topo-mode-wire');
+
+            if (mode === 'core-first') {
+                if (flowCore) flowCore.classList.remove('hidden');
+                if (flowWire) flowWire.classList.add('hidden');
+
+                if (btnCore) {
+                    btnCore.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all flex flex-col items-center";
+                }
+                if (btnWire) {
+                    btnWire.className = "px-4 py-2 rounded-xl text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all flex flex-col items-center";
+                }
+            } else {
+                if (flowCore) flowCore.classList.add('hidden');
+                if (flowWire) flowWire.classList.remove('hidden');
+
+                if (btnWire) {
+                    btnWire.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all flex flex-col items-center";
+                }
+                if (btnCore) {
+                    btnCore.className = "px-4 py-2 rounded-xl text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all flex flex-col items-center";
+                }
+            }
+        }
+
+        var activeTroubleIndex = -1;
+
+        function toggleTroubleItem(index) {
+            var total = 4;
+            var isOpening = (activeTroubleIndex !== index);
+
+            // 首先收起所有项
+            for (var i = 0; i < total; i++) {
+                var body = document.getElementById('trouble-body-' + i);
+                var chevron = document.getElementById('trouble-chevron-' + i);
+                if (body) {
+                    body.style.maxHeight = '0px';
+                    body.classList.remove('opacity-100');
+                    body.classList.add('opacity-0');
+                }
+                if (chevron) {
+                    chevron.classList.remove('rotate-180');
+                }
+            }
+
+            if (isOpening) {
+                activeTroubleIndex = index;
+                var targetBody = document.getElementById('trouble-body-' + index);
+                var targetChevron = document.getElementById('trouble-chevron-' + index);
+                if (targetBody) {
+                    targetBody.style.maxHeight = targetBody.scrollHeight + 'px';
+                    targetBody.classList.remove('opacity-0');
+                    targetBody.classList.add('opacity-100');
+                }
+                if (targetChevron) {
+                    targetChevron.classList.add('rotate-180');
+                }
+            } else {
+                activeTroubleIndex = -1;
+            }
+        }
+
+        // ----------------------------------------------------
+        // 5. 基础工具清单交互
+        // ----------------------------------------------------
+        function toggleToolItem(checkboxEl) {
+            var textWrapper = checkboxEl.closest('label').querySelector('.tool-text-content');
+            if (!textWrapper) return;
+            if (checkboxEl.checked) {
+                textWrapper.classList.add('tool-item-checked');
+            } else {
+                textWrapper.classList.remove('tool-item-checked');
+            }
+        }
+
+        // ----------------------------------------------------
+        // 6. 烧网子模块逻辑 (Oxidation Stages & Diagnostics)
+        // ----------------------------------------------------
+        var oxStages = {
+            1: {
+                name: "1. 银白 (未烧透)",
+                badge: "完全导电 (严重低温)",
+                badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
+                temp: "< 400℃ (温度严重不足)",
+                gradient: "radial-gradient(circle, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%)",
+                tagColor: "text-neutral-800",
+                summary: "亮银色不锈钢金属原色光泽 (金属裸露未钝化)",
+                verdict: "完全导电（上丝或接触底座必跳阻死短路）",
+                verdictClass: "font-bold text-rose-500",
+                tips: "温度严重不足。网片必须经过持续扫火聚热，单片或低温扫火无法形成致密二氧化铬保护膜。",
+                warning: "严禁此时绕丝通电！金属裸接触会导致主机瞬间触发 Atomizer Short 保护或直接打坏线圈。"
+            },
+            2: {
+                name: "2. 金色 / 彩色 (浅层氧化)",
+                badge: "弱绝缘 (极不稳定)",
+                badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+                temp: "~550℃ (平铺散热过快回火态)",
+                gradient: "radial-gradient(circle, #eab308 0%, #a855f7 45%, #3b82f6 80%, #64748b 100%)",
+                tagColor: "text-amber-200",
+                summary: "麦秆黄 / 浅金 / 泛蓝紫回火彩虹纹 (极薄氧化层)",
+                verdict: "弱绝缘（耐压极差，稍有发热丝张力即被刺破）",
+                verdictClass: "font-bold text-amber-500",
+                tips: "喷枪温度偏低，或单层平铺摊开烧导致散热过快所致。必须卷出实体后才能聚温深入烧透。",
+                warning: "看似好看但属于新手典型误区！发热丝稍一收紧或者受热热膨胀，就会机械击穿膜层引发短路。"
+            },
+            3: {
+                name: "3. 哑光深灰 (理想状态 ★)",
+                badge: "★ 理想状态 (推荐)",
+                badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+                temp: "~750℃ (泛白微黄自然缓冷)",
+                gradient: "radial-gradient(circle, #64748b 0%, #475569 50%, #334155 100%)",
+                tagColor: "text-white",
+                summary: "灰褐 / 哑光水泥深灰 (表面极其干净平整无浮渣)",
+                verdict: "极佳高绝缘（能耐受日常发热丝贴合）",
+                verdictClass: "font-bold text-emerald-500",
+                tips: "大风门喷枪，卷起后集中加热至泛白微黄后自然在空气中冷却，生成厚度均一的钝化膜。",
+                warning: "达成此状态后无需过度烧结；表面无多余附着碎屑，口感纯净无铁锈味。"
+            },
+            4: {
+                name: "4. 焦黑掉渣 (过度碳化)",
+                badge: "高绝缘但有杂质风险",
+                badgeClass: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20",
+                temp: "> 950℃ (烧结过猛剥落态)",
+                gradient: "radial-gradient(circle, #262626 0%, #171717 60%, #0a0a0a 100%)",
+                tagColor: "text-neutral-400",
+                summary: "粗糙黑灰、边缘起皮剥落有炭化浮渣",
+                verdict: "绝缘完好，但脱落浮渣易污染烟油与线圈",
+                verdictClass: "font-bold text-amber-500",
+                tips: "喷枪火焰对准单点烧结过久，铁铬铝微观层氧化过度脆化脱落。需通过热淬水法将松散浮渣彻底震落。",
+                warning: "必须在水龙头下或清水杯中反复进行‘烧红-淬水-轻甩抖渣’直至不再掉落黑渣，方可装配使用。"
+            }
+        };
+
+        function updateOxidizeState(val) {
+            var stage = parseInt(val) || 3;
+            var data = oxStages[stage];
+            if (!data) return;
+
+            var badge = document.getElementById('ox-stage-badge');
+            var temp = document.getElementById('ox-temp-label');
+            var visual = document.getElementById('ox-mesh-visual');
+            var tag = document.getElementById('ox-visual-tag');
+            var summary = document.getElementById('ox-finish-summary');
+            var verdict = document.getElementById('ox-insul-verdict');
+            var tips = document.getElementById('ox-tips-text');
+            var warnText = document.getElementById('ox-warning-text');
+            var valLbl = document.getElementById('ox-slider-val-lbl');
+
+            if (badge) { badge.innerText = data.badge; badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold " + data.badgeClass; }
+            if (temp) temp.innerText = data.temp;
+            if (visual) visual.style.background = data.gradient;
+            if (tag) { tag.innerText = data.name.split(' ')[1] || data.name; tag.className = "text-xs font-mono font-bold drop-shadow-md " + data.tagColor; }
+            if (summary) summary.innerText = data.summary;
+            if (verdict) { verdict.innerText = data.verdict; verdict.className = data.verdictClass; }
+            if (tips) tips.innerText = data.tips;
+            if (warnText) warnText.innerText = data.warning;
+            if (valLbl) valLbl.innerText = "档位 " + stage + " / 4";
+        }
+
+        var oxDiagInputs = {
+            fault: 'short',
+            color: 'rainbow',
+            structure: 'normal'
+        };
+
+        function setOxOpt(category, value) {
+            oxDiagInputs[category] = value;
+            var prefixMap = {
+                fault: 'ox-btn-fault',
+                color: 'ox-btn-color',
+                structure: 'ox-btn-struct'
+            };
+            var parentMap = {
+                fault: 'ox-opt-fault',
+                color: 'ox-opt-color',
+                structure: 'ox-opt-structure'
+            };
+            var container = document.getElementById(parentMap[category]);
+            if (container) {
+                var btns = container.querySelectorAll('button');
+                btns.forEach(function(btn) {
+                    var isSelected = btn.getAttribute('onclick').indexOf("'" + value + "'") !== -1;
+                    if (isSelected) {
+                        btn.className = prefixMap[category] + " active w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 transition";
+                        btn.innerHTML = btn.innerHTML.replace('○', '●');
+                    } else {
+                        btn.className = prefixMap[category] + " w-full p-2 rounded-lg text-left text-[11px] font-medium apple-glass-sub text-neutral-600 dark:text-neutral-300 transition";
+                        btn.innerHTML = btn.innerHTML.replace('●', '○');
+                    }
+                });
+            }
+            evalOxidizeDiagnostics();
+        }
+
+        function evalOxidizeDiagnostics() {
+            var f = oxDiagInputs.fault;
+            var c = oxDiagInputs.color;
+            var s = oxDiagInputs.structure;
+
+            var badgeEl = document.getElementById('ox-result-badge');
+            var reasonEl = document.getElementById('ox-result-reason');
+            var actionEl = document.getElementById('ox-result-action');
+            if (!badgeEl || !reasonEl || !actionEl) return;
+
+            if (s === 'tight') {
+                badgeEl.innerText = "发热丝张力超标刺破绝缘膜";
+                badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20";
+                reasonEl.innerHTML = "不是网子没烧好，而是绕丝手法过猛！发热丝收紧张力过大导致金属网受力挤压形变，微米级氧化钝化膜被机械压裂刺破，电流走捷径分流短路。";
+                actionEl.innerHTML = "使用陶瓷镊将发红那一圈或死短路的线圈<strong>稍微向外轻轻挑松、微振均整受力</strong>，保持发热丝‘自然相切服帖、镊子轻拨不滑动’即为合格力度，严禁死勒网芯。";
+                return;
+            }
+
+            if (f === 'short' && c === 'grey' && s === 'no_insul') {
+                badgeEl.innerText = "中轴/底面金属搭铁短路";
+                badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20";
+                reasonEl.innerHTML = "网子外壁氧化非常完美，但网芯底部触底接触了无绝缘台面的金属底座，或避雷针中轴直接搭通了网芯内壁未烧透的金属裸区造成旁路短路。";
+                actionEl.innerHTML = "1. <strong>检查仓底悬空：</strong>将网芯微微上提，确保底部与金属油仓底面预留 <strong>0.1mm 严格悬空</strong>，绝不可触底。<br>2. <strong>反卷贴中轴秘诀：</strong>拆下网芯，将原本烧结最好的<strong>外壁反向向内卷</strong>，让厚实氧化层贴紧避雷针中轴隔离导电。";
+                return;
+            }
+
+            if (f === 'short' && c === 'rainbow') {
+                badgeEl.innerText = "平铺浅层氧化被击穿";
+                badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20";
+                reasonEl.innerHTML = "单层平铺烧导致散热过快，网面温度不足，只形成了极薄的浅层彩色氧化膜，绝缘耐压强度极低，通电瞬间被电弧击穿短路。";
+                actionEl.innerHTML = "<strong>不要平铺烧！</strong>将网子先卷制成型，用大风门喷枪对着中间段集中加热至<strong>泛白微黄后自然缓慢冷却</strong>，使其彻底转为深灰色哑光状态。";
+                return;
+            }
+
+            if (c === 'silver') {
+                badgeEl.innerText = "网片未退火烧透 (金属裸露)";
+                badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20";
+                reasonEl.innerHTML = "网片几乎未建立起二氧化铬钝化绝缘层，相当于把发热丝直接绑在裸不锈钢导体上，整根网子成为导体形成大面积并联死短路。";
+                actionEl.innerHTML = "拆下发热丝与网芯，使用纯丁烷大风门喷枪距离 8cm 匀速扫火，将网芯通体烧至泛白微黄，使其彻底均匀呈深灰色。自然冷却后再装配绕丝。";
+                return;
+            }
+
+            if (f === 'leg_red' || f === 'spot_spark') {
+                badgeEl.innerText = "微短路导致局部偏流";
+                badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20";
+                reasonEl.innerHTML = "线圈中间存在局部微短路分流，导致有效电流绕过中段直接从悬空出线端汇流，丝脚丧失散热条件产生偏流爆红。";
+                actionEl.innerHTML = "切换至 3.6V 工作电压点动脉冲，观察高亮跳火点；用陶瓷镊子在红点交界处轻轻挑刮破坏局部金属桥；检查正负极出线脚是否平顺相切贴合，消除过长悬空。";
+                return;
+            }
+
+            badgeEl.innerText = "常规工况微调建议";
+            badgeEl.className = "px-2 py-0.5 rounded-md text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
+            reasonEl.innerHTML = "当前状态处于可调节范围。若伴随跳阻，多为线圈某处与网面微小接触电阻波动所致。";
+            actionEl.innerHTML = "先在 2.7V 低功率下短促点动观察发热，使用陶瓷镊微刮暗火点；初调均匀后必须升压至 3.6V 进行二次调整以消除隐性微短路。";
+        }
+
+        // ----------------------------------------------------
+        // 7. 裁剪数据模块 (Specs Database)
+        // ----------------------------------------------------
+        var modelSpecsData = {
+            'magnum': { name: '马格南 (Magnum)', badge: '2 种方案', schemes: [{ schemeName: '方案 1 (标准平衡)', draw: '口吸', mesh: '200目', w: 25.0, h: 21.0, vm: '4vm' }, { schemeName: '方案 2 (高目致密)', draw: '口吸', mesh: '230目', w: 28.0, h: 22.0, vm: '5-6vm' }] },
+            'scalpel': { name: '手术刀 (Scalpel)', badge: '精密标配', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '200目', w: 27.0, h: 23.0, vm: '6vm' }] },
+            'sakura': { name: '樱花 (Sakura)', badge: '经典口感标配', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '200目', w: 27.0, h: 21.0, vm: '6vm' }] },
+            'xl': { name: 'XL', badge: '深仓大通量', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '200目', w: 27.0, h: 21.0, vm: '6vm' }] },
+            'k5k': { name: 'K5K', badge: '甲板高兼容', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '200目', w: 27.0, h: 22.0, vm: '6vm' }] },
+            'og2': { name: 'OG2', badge: '超宽口径极速爬升', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '200目', w: 25.0, h: 23.0, vm: '6vm' }] },
+            's61': { name: 'S61', badge: '超大展开高通量标配', schemes: [{ schemeName: '标配工况', draw: '口吸', mesh: '230目', w: 32.0, h: 22.0, vm: '5vm' }] }
+        };
+
+        var curModelKey = 'magnum';
+        var curSchemeIdx = 0;
+        var isModelDropdownOpen = false;
+
+        function toggleModelDropdown(e) {
+            if (e) e.stopPropagation();
+            isModelDropdownOpen = !isModelDropdownOpen;
+            var dropdown = document.getElementById('model-picker-dropdown');
+            var chevron = document.getElementById('picker-chevron');
+            if (!dropdown) return;
+            if (isModelDropdownOpen) { dropdown.classList.remove('hidden'); if (chevron) chevron.classList.add('rotate-180'); var searchInput = document.getElementById('model-search-input'); if (searchInput) { searchInput.value = ''; filterModelList(''); } } 
+            else { dropdown.classList.add('hidden'); if (chevron) chevron.classList.remove('rotate-180'); }
+        }
+        function closeModelDropdown() {
+            if (!isModelDropdownOpen) return;
+            isModelDropdownOpen = false;
+            var dropdown = document.getElementById('model-picker-dropdown');
+            var chevron = document.getElementById('picker-chevron');
+            if (dropdown) dropdown.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+        document.addEventListener('click', function(e) {
+            var wrapper = document.getElementById('model-picker-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) closeModelDropdown();
+        });
+
+        function renderModelOptions(filterText) {
+            var listEl = document.getElementById('model-options-list');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            var query = (filterText || '').trim().toLowerCase();
+            var keys = Object.keys(modelSpecsData);
+            var matchCount = 0;
+
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i]; var m = modelSpecsData[key];
+                if (query && m.name.toLowerCase().indexOf(query) === -1 && key.toLowerCase().indexOf(query) === -1) continue;
+                matchCount++;
+                var isSelected = (key === curModelKey);
+
+                var item = document.createElement('div');
+                item.className = 'p-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-between text-xs ' +
+                    (isSelected ? 'apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 font-semibold' : 'apple-glass-sub hover:bg-black/5 dark:hover:bg-white/5 text-neutral-800 dark:text-neutral-200');
+                item.onclick = (function(modelKey) { return function() { switchModelTab(modelKey); closeModelDropdown(); }; })(key);
+                item.innerHTML = '<div class="flex items-center space-x-2.5"><span class="w-1.5 h-1.5 rounded-full ' + (isSelected ? 'bg-blue-500 shadow-[0_0_8px_#2997ff]' : 'bg-neutral-400/40') + '"></span><span class="font-medium">' + m.name + '</span></div><span class="text-[10px] font-mono px-2 py-0.5 rounded-md ' + (isSelected ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300' : 'bg-black/5 dark:bg-white/10 text-neutral-400') + '">' + m.schemes.length + ' 组方案</span>';
+                listEl.appendChild(item);
+            }
+            if (matchCount === 0) listEl.innerHTML = '<div class="py-4 text-center text-neutral-400 text-xs font-mono">未查找到匹配机型</div>';
+        }
+
+        function filterModelList(text) { renderModelOptions(text); }
+
+        function switchModelTab(modelKey) {
+            curModelKey = modelKey; curSchemeIdx = 0;
+            var m = modelSpecsData[curModelKey];
+            if (m) {
+                var nameEl = document.getElementById('picker-cur-name'); var badgeEl = document.getElementById('picker-cur-badge');
+                if (nameEl) nameEl.innerText = m.name; if (badgeEl) badgeEl.innerText = m.schemes.length + ' 种方案';
+            }
+            renderModelOptions(''); renderModelDetail();
+        }
+
+        function renderModelDetail() {
+            var m = modelSpecsData[curModelKey]; if (!m) return;
+            document.getElementById('tab-model-title').innerText = m.name;
+            document.getElementById('tab-model-badge').innerText = m.badge;
+            var container = document.getElementById('sub-scheme-container');
+            container.innerHTML = '';
+
+            for (var idx = 0; idx < m.schemes.length; idx++) {
+                (function(schemeIndex) {
+                    var s = m.schemes[schemeIndex];
+                    var btn = document.createElement('div');
+                    var isActive = (schemeIndex === curSchemeIdx);
+                    btn.className = 'p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center text-xs ' + 
+                        (isActive ? 'apple-glass border-blue-500/80 bg-blue-500/15 shadow-md scale-[1.01]' : 'apple-glass-sub hover:scale-[1.01]');
+                    btn.onclick = function() { curSchemeIdx = schemeIndex; renderModelDetail(); };
+                    var drawMode = s.draw || '口吸';
+                    btn.innerHTML = '<div><div class="font-semibold text-neutral-900 dark:text-white flex items-center">' + (isActive ? '<span class="w-2 h-2 rounded-full bg-blue-500 mr-2 shadow-[0_0_10px_#2997ff]"></span>' : '') + s.schemeName + '</div><div class="text-[10px] text-neutral-400 font-mono mt-0.5 flex items-center space-x-1.5"><span>' + s.mesh + '</span><span>·</span><span class="text-blue-600 dark:text-blue-400 font-sans font-medium">' + drawMode + '</span></div></div><div class="text-right"><div class="font-mono text-neutral-800 dark:text-neutral-200 font-semibold">' + (s.w / 10).toFixed(1) + ' × ' + (s.h / 10).toFixed(1) + ' cm</div><div class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-medium">' + s.vm + '</div></div>';
+                    container.appendChild(btn);
+                })(idx);
+            }
+            var curS = m.schemes[curSchemeIdx];
+            var curDraw = curS.draw || '口吸';
+            document.getElementById('card-scheme-name').innerText = m.name + ' - ' + curS.schemeName;
+            var drawEl = document.getElementById('card-draw');
+            if (drawEl) drawEl.innerText = curDraw + (curDraw === '口吸' ? ' (MTL)' : ' (DL)');
+            var drawDetailEl = document.getElementById('card-draw-detail');
+            if (drawDetailEl) drawDetailEl.innerText = curDraw + (curDraw === '口吸' ? ' (MTL 紧实吸阻)' : ' (DL 通畅大通量)');
+            document.getElementById('card-mesh').innerText = curS.mesh;
+            document.getElementById('card-w').innerText = curS.w.toFixed(1);
+            document.getElementById('card-h').innerText = curS.h.toFixed(1);
+            document.getElementById('card-w-cm').innerText = (curS.w / 10).toFixed(1);
+            document.getElementById('card-h-cm').innerText = (curS.h / 10).toFixed(1);
+            document.getElementById('card-vm').innerText = curS.vm;
+        }
+
+        // ----------------------------------------------------
+        // 8. 调整发热交互系统 (Heat Tuning & Fault Tree)
+        // ----------------------------------------------------
+        var curDiagSubTab = 'sim';
+        function switchDiagSubTab(tab) {
+            curDiagSubTab = tab;
+            var viewSim = document.getElementById('diag-view-sim');
+            var viewTree = document.getElementById('diag-view-tree');
+            var btnSim = document.getElementById('diag-subtab-sim');
+            var btnTree = document.getElementById('diag-subtab-tree');
+
+            if (tab === 'sim') {
+                if (viewSim) { viewSim.classList.remove('hidden'); viewSim.classList.add('active'); }
+                if (viewTree) { viewTree.classList.remove('active'); viewTree.classList.add('hidden'); }
+                if (btnSim) btnSim.className = "px-4 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all";
+                if (btnTree) btnTree.className = "px-4 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all";
+            } else {
+                if (viewTree) { viewTree.classList.remove('hidden'); viewTree.classList.add('active'); }
+                if (viewSim) { viewSim.classList.remove('active'); viewSim.classList.add('hidden'); }
+                if (btnTree) btnTree.className = "px-4 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all";
+                if (btnSim) btnSim.className = "px-4 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all";
+            }
+        }
+
+        var heatSimState = {
+            stage: 'COLD',
+            curGear: 'low',
+            isHighUnlocked: false,
+            isFiring: false,
+            heatLevel: 0.0,
+            simAnimReq: null
+        };
+
+        function setHeatGear(gear) {
+            if (gear === 'high' && !heatSimState.isHighUnlocked) return;
+            heatSimState.curGear = gear;
+            var btnLow = document.getElementById('btn-gear-low');
+            var btnHigh = document.getElementById('btn-gear-high');
+            if (gear === 'low') {
+                if (btnLow) btnLow.className = "p-2.5 rounded-xl border border-blue-500/80 bg-blue-500/15 text-blue-600 dark:text-blue-400 font-semibold text-xs flex flex-col text-left transition";
+                if (btnHigh) btnHigh.className = "p-2.5 rounded-xl apple-glass-sub text-neutral-400 font-medium text-xs flex flex-col text-left transition";
+            } else {
+                if (btnHigh) btnHigh.className = "p-2.5 rounded-xl border border-blue-500/80 bg-blue-500/15 text-blue-600 dark:text-blue-400 font-semibold text-xs flex flex-col text-left transition";
+                if (btnLow) btnLow.className = "p-2.5 rounded-xl apple-glass-sub text-neutral-500 font-medium text-xs flex flex-col text-left transition";
+            }
+            updateHeatOledDisplay();
+        }
+
+        function applyHeatTool(tool) {
+            var fb = document.getElementById('heat-sim-feedback');
+            if (tool === 'screw') {
+                if (heatSimState.stage === 'LOW_PWR_UNEVEN') {
+                    heatSimState.stage = 'LOW_PWR_OK';
+                    heatSimState.isHighUnlocked = true;
+                    var highBtn = document.getElementById('btn-gear-high');
+                    var lockBadge = document.getElementById('gear-lock-badge');
+                    if (highBtn) { highBtn.disabled = false; highBtn.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    if (lockBadge) { lockBadge.innerText = "🔓 已解锁"; lockBadge.className = "text-[9px] text-emerald-500 font-bold"; }
+                    if (fb) fb.innerHTML = "✅ <strong>螺丝压脚已理平：</strong>消除了正极柱虚接拉扯！请再次点火观察低功率发热，随后<b>升压切换至工作档 (3.6V)</b> 进行二次调整。";
+                } else if (heatSimState.stage === 'COLD') {
+                    if (fb) fb.innerHTML = "ℹ️ 已理平螺丝压脚。请按住【FIRE】观察低功率升温状况。";
+                } else {
+                    if (fb) fb.innerHTML = "ℹ️ 当前螺丝压接状态良好，无虚接偏流。";
+                }
+            } else if (tool === 'scrape') {
+                if (heatSimState.stage === 'HI_PWR_HOTSPOT') {
+                    heatSimState.stage = 'TUNED_PERFECT';
+                    if (fb) fb.innerHTML = "✨ <strong>微短路已清除：</strong>镊子轻刮破坏了高温金属旁路！再次长按【FIRE】，线圈将展现由中心向外浑厚纯净的发热透红，阻值死死稳在 0.90Ω！";
+                } else if (heatSimState.stage === 'TUNED_PERFECT') {
+                    if (fb) fb.innerHTML = "✨ 调校已处于巅峰状态，绝缘层完好，切勿过度刮动。";
+                } else {
+                    if (fb) fb.innerHTML = "ℹ️ 当前未出现高温微短路，请先升压至 3.6V 点火激发短路点。";
+                }
+            }
+            updateHeatOledDisplay();
+        }
+
+        function resetHeatSim() {
+            heatSimState.stage = 'COLD';
+            heatSimState.curGear = 'low';
+            heatSimState.isHighUnlocked = false;
+            heatSimState.isFiring = false;
+            heatSimState.heatLevel = 0.0;
+            var highBtn = document.getElementById('btn-gear-high');
+            var lockBadge = document.getElementById('gear-lock-badge');
+            if (highBtn) { highBtn.disabled = true; highBtn.className = "p-2.5 rounded-xl apple-glass-sub text-neutral-400 font-medium text-xs flex flex-col text-left opacity-40 cursor-not-allowed transition"; }
+            if (lockBadge) { lockBadge.innerText = "🔒 锁定中"; lockBadge.className = "text-[9px]"; }
+            setHeatGear('low');
+            var fb = document.getElementById('heat-sim-feedback');
+            if (fb) fb.innerHTML = "💡 <strong>仿真已重置：</strong>当前为冷态。请保持在【初调档 (2.7V)】，长按【FIRE】开始低功率排查。";
+            updateHeatOledDisplay();
+        }
+
+        function heatSimFireStart() {
+            if (heatSimState.isFiring) return;
+            heatSimState.isFiring = true;
+            var btn = document.getElementById('btn-sim-fire');
+            if (btn) btn.classList.add('fire-glow', 'bg-orange-600', 'text-white');
+
+            if (heatSimState.curGear === 'low') {
+                if (heatSimState.stage === 'COLD') {
+                    heatSimState.stage = 'LOW_PWR_UNEVEN';
+                    var fb = document.getElementById('heat-sim-feedback');
+                    if (fb) fb.innerHTML = "⚠️ <strong>低功率发热不均！</strong>正极引线端刺亮单点发红，丝身升温迟缓。新手螺丝未理平极易引发虚接偏流，请点击工具箱【检查/理平螺丝】。";
+                }
+            } else {
+                if (heatSimState.stage === 'LOW_PWR_OK') {
+                    heatSimState.stage = 'HI_PWR_HOTSPOT';
+                    var fb2 = document.getElementById('heat-sim-feedback');
+                    if (fb2) fb2.innerHTML = "🔥 <strong>高温微短路显现！</strong>高电压热膨胀击穿了微弱氧化层，第 3 圈刺亮白炽红点，阻值骤跌至 0.83Ω（上油跳阻真凶！）。请点击【镊子轻刮网面】消除短路！";
+                }
+            }
+            updateHeatOledDisplay();
+        }
+
+        function heatSimFireEnd() {
+            if (!heatSimState.isFiring) return;
+            heatSimState.isFiring = false;
+            var btn = document.getElementById('btn-sim-fire');
+            if (btn) btn.classList.remove('fire-glow', 'bg-orange-600', 'text-white');
+            updateHeatOledDisplay();
+        }
+
+        function updateHeatOledDisplay() {
+            var rEl = document.getElementById('oled-val-r');
+            var vEl = document.getElementById('oled-val-v');
+            var badgeEl = document.getElementById('oled-status-badge');
+            if (!rEl || !vEl || !badgeEl) return;
+
+            var v = (heatSimState.isFiring) ? (heatSimState.curGear === 'low' ? 2.7 : 3.6) : 0.0;
+            var r = 0.92;
+            var badgeText = "STANDBY // 待机";
+            var badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-neutral-700 bg-neutral-900 text-neutral-400";
+            var rClass = "text-2xl sm:text-3xl font-bold ";
+
+            if (heatSimState.isFiring) {
+                if (heatSimState.stage === 'LOW_PWR_UNEVEN') {
+                    r = 0.92 + (Math.random() * 0.03 - 0.01);
+                    badgeText = "SHORT // 正极偏流虚接";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-amber-500/40 bg-amber-950/40 text-amber-400 animate-pulse";
+                    rClass += "oled-amber-text";
+                } else if (heatSimState.stage === 'LOW_PWR_OK') {
+                    r = 0.90;
+                    badgeText = "STEP 1 OK // 初调均热完成";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-blue-500/40 bg-blue-950/40 text-blue-400";
+                    rClass += "text-blue-400";
+                } else if (heatSimState.stage === 'HI_PWR_HOTSPOT') {
+                    r = 0.83 + (Math.random() * 0.02);
+                    badgeText = "HOTSPOT // 微短路跌阻";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-rose-500/50 bg-rose-950/50 text-rose-400 animate-pulse";
+                    rClass += "oled-alert-text";
+                } else if (heatSimState.stage === 'TUNED_PERFECT') {
+                    r = 0.90;
+                    badgeText = "PERFECT // 纯净稳阻达成";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-emerald-500/40 bg-emerald-950/40 text-emerald-400";
+                    rClass += "oled-glow-text";
+                } else {
+                    r = 0.92;
+                    badgeText = "FIRING // 低温升温中";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-neutral-700 bg-neutral-900 text-neutral-300";
+                    rClass += "text-neutral-200";
+                }
+            } else {
+                if (heatSimState.stage === 'TUNED_PERFECT') {
+                    r = 0.90;
+                    badgeText = "READY // 允许注油体验";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-emerald-500/30 bg-emerald-950/20 text-emerald-400";
+                    rClass += "text-emerald-400";
+                } else if (heatSimState.stage === 'LOW_PWR_OK') {
+                    r = 0.90;
+                    badgeText = "LOW OK // 待高压升温测试";
+                    badgeClass = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase border border-blue-500/30 bg-blue-950/20 text-blue-400";
+                    rClass += "text-blue-400";
+                } else {
+                    r = 0.92;
+                }
+            }
+
+            var w = (v > 0) ? (Math.pow(v, 2) / r) : 0.0;
+            rEl.innerHTML = r.toFixed(2) + ' <span class="text-sm font-normal">Ω</span>';
+            rEl.className = rClass;
+            vEl.innerText = v.toFixed(1) + ' V / ' + w.toFixed(1) + ' W';
+            badgeEl.innerText = badgeText;
+            badgeEl.className = badgeClass;
+        }
+
+        function renderHeatSimLoop() {
+            var targetHeat = (heatSimState.isFiring) ? 1.0 : 0.0;
+            var lerpSpeed = (heatSimState.isFiring) ? 0.08 : 0.045;
+            heatSimState.heatLevel += (targetHeat - heatSimState.heatLevel) * lerpSpeed;
+            if (heatSimState.heatLevel < 0.001) heatSimState.heatLevel = 0.0;
+
+            var hVal = heatSimState.heatLevel;
+            var stg = heatSimState.stage;
+
+            var c1 = document.getElementById('svg-coil-turn-1');
+            var c2 = document.getElementById('svg-coil-turn-2');
+            var c3 = document.getElementById('svg-coil-turn-3');
+            var c4 = document.getElementById('svg-coil-turn-4');
+            var lNeg = document.getElementById('svg-wire-lead-neg');
+            var lPos = document.getElementById('svg-wire-lead-pos');
+            var spotPos = document.getElementById('svg-hotspot-pos');
+            var spotMesh = document.getElementById('svg-hotspot-mesh');
+            var guidePointer = document.getElementById('svg-guide-pointer');
+
+            if (c1 && c2 && c3 && c4 && lNeg && lPos) {
+                if (stg === 'LOW_PWR_UNEVEN') {
+                    var colLeadHot = interpolateCoilColor(hVal * 1.3, true);
+                    lPos.setAttribute('stroke', colLeadHot);
+                    if (spotPos) {
+                        spotPos.setAttribute('opacity', Math.min(1.0, hVal * 1.5).toFixed(2));
+                        spotPos.setAttribute('fill', hVal > 0.6 ? '#fffb8f' : '#ff4500');
+                    }
+                    var colCoilDull = interpolateCoilColor(hVal * 0.35, false);
+                    c1.setAttribute('stroke', colCoilDull);
+                    c2.setAttribute('stroke', colCoilDull);
+                    c3.setAttribute('stroke', colCoilDull);
+                    c4.setAttribute('stroke', colCoilDull);
+                    lNeg.setAttribute('stroke', colCoilDull);
+                    if (spotMesh) spotMesh.setAttribute('opacity', '0');
+                    if (guidePointer) guidePointer.setAttribute('opacity', '0');
+                } else if (stg === 'LOW_PWR_OK') {
+                    if (spotPos) spotPos.setAttribute('opacity', '0');
+                    if (spotMesh) spotMesh.setAttribute('opacity', '0');
+                    if (guidePointer) guidePointer.setAttribute('opacity', '0');
+                    var colCenter = interpolateCoilColor(hVal * 0.75, false);
+                    var colOuter = interpolateCoilColor(hVal * 0.55, false);
+                    var colLead = interpolateCoilColor(hVal * 0.25, false);
+                    c2.setAttribute('stroke', colCenter);
+                    c3.setAttribute('stroke', colCenter);
+                    c1.setAttribute('stroke', colOuter);
+                    c4.setAttribute('stroke', colOuter);
+                    lNeg.setAttribute('stroke', colLead);
+                    lPos.setAttribute('stroke', colLead);
+                } else if (stg === 'HI_PWR_HOTSPOT') {
+                    if (spotPos) spotPos.setAttribute('opacity', '0');
+                    if (spotMesh) {
+                        spotMesh.setAttribute('opacity', Math.min(1.0, hVal * 1.6).toFixed(2));
+                        spotMesh.setAttribute('fill', hVal > 0.5 ? '#fffb8f' : '#ff3b00');
+                    }
+                    if (guidePointer) guidePointer.setAttribute('opacity', hVal > 0.3 ? '1' : '0');
+                    var colTurn3Short = interpolateCoilColor(hVal * 1.4, true);
+                    c3.setAttribute('stroke', colTurn3Short);
+                    var colOtherDull = interpolateCoilColor(hVal * 0.45, false);
+                    c1.setAttribute('stroke', colOtherDull);
+                    c2.setAttribute('stroke', colOtherDull);
+                    c4.setAttribute('stroke', colOtherDull);
+                    lNeg.setAttribute('stroke', colOtherDull);
+                    lPos.setAttribute('stroke', colOtherDull);
+                } else if (stg === 'TUNED_PERFECT') {
+                    if (spotPos) spotPos.setAttribute('opacity', '0');
+                    if (spotMesh) spotMesh.setAttribute('opacity', '0');
+                    if (guidePointer) guidePointer.setAttribute('opacity', '0');
+                    var colCoreGlow = interpolateCoilColor(hVal * 1.0, true);
+                    var colMidGlow = interpolateCoilColor(hVal * 0.85, false);
+                    var colEdgeLead = interpolateCoilColor(hVal * 0.35, false);
+                    c2.setAttribute('stroke', colCoreGlow);
+                    c3.setAttribute('stroke', colCoreGlow);
+                    c1.setAttribute('stroke', colMidGlow);
+                    c4.setAttribute('stroke', colMidGlow);
+                    lNeg.setAttribute('stroke', colEdgeLead);
+                    lPos.setAttribute('stroke', colEdgeLead);
+                } else {
+                    var colCold = '#475569';
+                    c1.setAttribute('stroke', colCold);
+                    c2.setAttribute('stroke', colCold);
+                    c3.setAttribute('stroke', colCold);
+                    c4.setAttribute('stroke', colCold);
+                    lNeg.setAttribute('stroke', colCold);
+                    lPos.setAttribute('stroke', colCold);
+                    if (spotPos) spotPos.setAttribute('opacity', '0');
+                    if (spotMesh) spotMesh.setAttribute('opacity', '0');
+                    if (guidePointer) guidePointer.setAttribute('opacity', '0');
+                }
+            }
+
+            heatSimState.simAnimReq = requestAnimationFrame(renderHeatSimLoop);
+        }
+
+        function interpolateCoilColor(heat, canIncandescent) {
+            var h = Math.max(0.0, Math.min(1.0, heat));
+            if (h < 0.05) return '#475569';
+            if (h < 0.35) {
+                var t = (h - 0.05) / 0.30;
+                var r = Math.round(71 + t * (139 - 71));
+                var g = Math.round(85 - t * 65);
+                var b = Math.round(105 - t * 85);
+                return 'rgb(' + r + ',' + g + ',' + b + ')';
+            } else if (h < 0.75) {
+                var t2 = (h - 0.35) / 0.40;
+                var r2 = Math.round(139 + t2 * (255 - 139));
+                var g2 = Math.round(20 + t2 * (90 - 20));
+                var b2 = Math.round(20 - t2 * 20);
+                return 'rgb(' + r2 + ',' + g2 + ',' + b2 + ')';
+            } else {
+                var t3 = (h - 0.75) / 0.25;
+                if (!canIncandescent) {
+                    var r3 = 255; var g3 = Math.round(90 + t3 * 40); var b3 = 0;
+                    return 'rgb(' + r3 + ',' + g3 + ',' + b3 + ')';
+                }
+                var r4 = 255;
+                var g4 = Math.round(130 + t3 * 115);
+                var b4 = Math.round(20 + t3 * 125);
+                return 'rgb(' + r4 + ',' + g4 + ',' + b4 + ')';
+            }
+        }
+
+        var diagTreeData = {
+            'A': {
+                title: "A. 正/负极螺丝下方冒火花或单点发红",
+                physics: "螺丝拧紧时产生点接触虚接，或者锁紧力度过大（蛮力拧紧）导致 Rope 缆绳内部微细线束被剪切损伤，局部有效横截面积骤降，接触电阻极大，电流流经时根据焦耳定律产生剧烈过载发热与微型电弧火花。",
+                actions: [
+                    "<strong>1. 松开理平：</strong>彻底断电，松开螺丝，用镊子轻轻将发热丝脚在极柱表面完全拨平顺滑。",
+                    "<strong>2. 360°叠压：</strong>确保缆绳平整贴在垫片下，弧度适中不打折死弯。",
+                    "<strong>3. 锁至 7 分紧：</strong>感受到适度阻力包裹即止，切忌死拧把缆绳挤烂切断。"
+                ]
+            },
+            'B': {
+                title: "B. 刚做好发热均匀，一上油/抽几口正极发红",
+                physics: "低功率初调时热负荷低，热膨胀极小，网面氧化层未被击穿；一旦上油或切到工作功率，高负荷与热膨胀使发热丝与网壁紧贴击穿氧化膜，暴露微短路点。电流走捷径导致中段供电不足，两端悬空出线强行偏流超载发红。",
+                actions: [
+                    "<strong>1. 必须二次升压：</strong>初调完成后切至 3.5V~3.7V 重新点火观察，隐藏短路刺亮红点会暴露无遗。",
+                    "<strong>2. 镊子轻刮破坏短路：</strong>用陶瓷镊子在刺亮红点交界面轻轻挑动微振，破坏金属桥，恢复绝缘。",
+                    "<strong>3. 排除网子毛刺：</strong>检查网芯最外沿边缘是否有微米级毛刺压在线圈下方，如有需修平。"
+                ]
+            },
+            'C': {
+                title: "C. 点火时间越长，电阻一路往下跌",
+                physics: "正常电阻随温度上升应微涨或恒阻。若阻值反常暴跌，说明发热丝未与网壁形成可靠钝化，电流大量突破网壁将不锈钢网芯当作了旁路导体，有效电阻被并联短路拉低。",
+                actions: [
+                    "<strong>1. 识别降阻：</strong>降阻绝非发热丝本身特性，而是‘网丝短路并联’的铁证！",
+                    "<strong>2. 挑刮排障：</strong>切至工作档短促点动，观察线圈暗区，用细针插入网内轻微向外撑起发热丝。",
+                    "<strong>3. 彻底重新退火：</strong>若大面积跌阻，说明网芯钝化严重不足，拆下重新用丁烷喷枪匀速扫火。"
+                ]
+            },
+            'D': {
+                title: "D. 罩上雾化仓罩子后电阻骤降/跳动",
+                physics: "雾化仓金属顶罩内部极其紧凑。网芯裁剪超高或卷制歪斜下探不足，罩上罩子时金属内壁直接搭铁导通机身，造成绝对短路。",
+                actions: [
+                    "<strong>1. 校验展开高度：</strong>拆下网芯严格对照【裁剪数据】的展开高标准。",
+                    "<strong>2. 检查切口修平：</strong>斜裁上沿是否有翘起的不锈钢丝毛刺向上直立，平整修齐。",
+                    "<strong>3. 垂直下探：</strong>确保网芯底端垂直探入油仓底部但悬空 0.1mm，顶端留有安全缝隙。"
+                ]
+            },
+            'E': {
+                title: "E. 走空走线（丝脚悬空段）单独发红",
+                physics: "发热丝从网芯表面引向正极柱或负极螺丝的悬空段没有网芯浸润冷却，如果悬空距离超长，或者折线过死未顺滑相切，悬空丝脚将丧失汽化潜热散热，必然单点爆红并伴随焦糊味。",
+                actions: [
+                    "<strong>1. 缩短悬空跨距：</strong>严格遵循 X 型立体交叉拓扑，底丝紧贴网芯起线，顶丝相切斜跨入柱。",
+                    "<strong>2. 杜绝死弯折角：</strong>用镊子使引出脚呈现平缓相切弧线，顺滑过渡贴紧极柱垫片。",
+                    "<strong>3. 检查线径完整性：</strong>确保丝脚未被螺丝割裂变细导致局部横截面缩减。"
+                ]
+            },
+            'F': {
+                title: "F. 主机偶发报低电量/阻值忽高忽低",
+                physics: "雾化器底部 510 铜电极螺丝伸出长度不足，无法与主机 510 弹片硬性贴合顶紧，或正极柱中心绝缘垫圈压扁松动；大电流放电检测瞬间出现高阻压降，芯片误判电池内阻过大。",
+                actions: [
+                    "<strong>1. 调节 510 螺丝高度：</strong>旋出雾化器底部 510 正极螺丝约 0.3mm，确保硬性下压弹片。",
+                    "<strong>2. 清洁接触面油渍：</strong>用棉签蘸无水酒精彻底擦净 510 螺纹与中心触点上的积碳与渗油。",
+                    "<strong>3. 锁紧甲板中心正极柱：</strong>检查雾化甲板中央的正极柱固定螺帽，确认其牢固压紧无晃动旷量。"
+                ]
+            }
+        };
+
+        function selectDiagTree(key) {
+            var data = diagTreeData[key];
+            if (!data) return;
+
+            var keys = ['A', 'B', 'C', 'D', 'E', 'F'];
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                var btn = document.getElementById('btn-tree-tag-' + k);
+                if (btn) {
+                    if (k === key) {
+                        btn.className = "tree-tag-btn active w-full p-3 rounded-xl text-left text-xs font-semibold apple-glass bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-between transition scale-[1.01]";
+                    } else {
+                        btn.className = "tree-tag-btn w-full p-3 rounded-xl text-left text-xs font-medium apple-glass-sub text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between transition";
+                    }
+                }
+            }
+
+            var titleEl = document.getElementById('tree-detail-title');
+            var physicsEl = document.getElementById('tree-detail-physics');
+            var actionsEl = document.getElementById('tree-detail-actions');
+
+            if (titleEl) titleEl.innerText = data.title;
+            if (physicsEl) physicsEl.innerText = data.physics;
+            if (actionsEl) {
+                actionsEl.innerHTML = '';
+                for (var j = 0; j < data.actions.length; j++) {
+                    var act = document.createElement('div');
+                    act.className = "p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5";
+                    act.innerHTML = data.actions[j];
+                    actionsEl.appendChild(act);
+                }
+            }
+        }
+
+        function initDiagSystem() {
+            var btnFire = document.getElementById('btn-sim-fire');
+            if (btnFire) {
+                btnFire.addEventListener('mousedown', heatSimFireStart);
+                btnFire.addEventListener('touchstart', heatSimFireStart, { passive: true });
+                window.addEventListener('mouseup', heatSimFireEnd);
+                window.addEventListener('touchend', heatSimFireEnd);
+                btnFire.addEventListener('mouseleave', heatSimFireEnd);
+            }
+            selectDiagTree('A');
+            updateHeatOledDisplay();
+            if (!heatSimState.simAnimReq) {
+                renderHeatSimLoop();
+            }
+        }
+
+        // ----------------------------------------------------
+        // 9. 核心自愈挂载与初始化 (Bootstrapping)
+        // ----------------------------------------------------
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            
+            try { initDiagSystem(); } catch(e) { console.warn("Diag system error:", e); }
+            if (typeof renderModelOptions === 'function') renderModelOptions('');
+            if (typeof switchModelTab === 'function') switchModelTab('magnum');
+            if (typeof setCoilTopologyMode === 'function') setCoilTopologyMode('core-first');
+        });
+    </script>
+</body>
+</html>

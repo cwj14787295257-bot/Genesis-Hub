@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NIRVANA // 导油理论物理工坊</title>
+    
+    <!-- 首屏防止白屏/黑屏闪烁预处理脚本 -->
+    <script>
+        (function() {
+            try {
+                var mode = localStorage.getItem('genesis_theme_mode');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (mode === 'dark' || (!mode && prefersDark) || (mode === 'auto' && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bgLight: '#f5f5f7',
+                            bgDark: '#000000',
+                            accent: '#2997ff',
+                            accentMuted: '#0071e3',
+                            titanium: '#86868b',
+                            platinum: '#d2b48c'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <style>
+        :root { 
+            --apple-bg: #f5f5f7; 
+            --apple-panel: rgba(255, 255, 255, 0.70);
+            --apple-panel-sub: rgba(255, 255, 255, 0.50);
+            --apple-border: rgba(0, 0, 0, 0.08);
+            --apple-border-sub: rgba(0, 0, 0, 0.05);
+            --apple-text-title: #1d1d1f;
+            --apple-text-sub: #6e6e73;
+            --apple-pill: rgba(0, 0, 0, 0.04);
+            --apple-shadow: rgba(0, 0, 0, 0.06);
+            --apple-specular: rgba(255, 255, 255, 0.95);
+            --theme-accent: #0071e3;
+        }
+        html.dark { 
+            --apple-bg: #000000; 
+            --apple-panel: rgba(22, 22, 26, 0.50);
+            --apple-panel-sub: rgba(32, 32, 38, 0.38);
+            --apple-border: rgba(255, 255, 255, 0.12);
+            --apple-border-sub: rgba(255, 255, 255, 0.06);
+            --apple-text-title: #f5f5f7;
+            --apple-text-sub: #86868b;
+            --apple-pill: rgba(255, 255, 255, 0.08);
+            --apple-shadow: rgba(0, 0, 0, 0.65);
+            --apple-specular: rgba(255, 255, 255, 0.16);
+            --theme-accent: #2997ff;
+        }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; 
+            background-color: var(--apple-bg); 
+            color: var(--apple-text-sub);
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .apple-glass { 
+            background: var(--apple-panel); 
+            backdrop-filter: blur(48px) saturate(220%);
+            -webkit-backdrop-filter: blur(48px) saturate(220%);
+            border: 1px solid var(--apple-border);
+            border-radius: 1.35rem;
+            box-shadow: 0 14px 40px 0 var(--apple-shadow), inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-sub {
+            background: var(--apple-panel-sub);
+            backdrop-filter: blur(30px) saturate(190%);
+            -webkit-backdrop-filter: blur(30px) saturate(190%);
+            border: 1px solid var(--apple-border-sub);
+            border-radius: 0.95rem;
+            box-shadow: inset 0 1px 1px 0 var(--apple-specular);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass-nav-radical {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.7);
+        }
+        html.dark .apple-glass-nav-radical {
+            background: rgba(10, 10, 14, 0.45);
+            backdrop-filter: blur(65px) saturate(260%);
+            -webkit-backdrop-filter: blur(65px) saturate(260%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55), inset 0 -0.5px 0.5px 0 rgba(255, 255, 255, 0.16);
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.65;
+            animation: floatAmbient 22s ease-in-out infinite alternate;
+        }
+        @keyframes floatAmbient {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.08); }
+            100% { transform: translate(-30px, 25px) scale(0.92); }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        canvas { display: block; width: 100%; outline: none; }
+
+        .theory-sub-view { display: none; animation: subSpringIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .theory-sub-view.active { display: block; }
+        @keyframes subSpringIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 厂牌 Logo 专属容器样式 */
+        .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+        }
+        html.dark .brand-logo-frame {
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.12);
+        }
+    </style>
+</head>
+<body class="selection:bg-neutral-800 selection:text-white relative min-h-screen flex flex-col justify-between">
+
+    <!-- 氛围背景 -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="ambient-orb w-[460px] h-[460px] -top-20 -left-20 bg-blue-600/25 dark:bg-blue-600/15"></div>
+        <div class="ambient-orb w-[480px] h-[480px] top-1/3 -right-28 bg-indigo-600/25 dark:bg-indigo-500/15" style="animation-delay: -7s;"></div>
+        <div class="ambient-orb w-[420px] h-[420px] bottom-10 left-1/4 bg-sky-400/20 dark:bg-zinc-600/15" style="animation-delay: -14s;"></div>
+    </div>
+
+    <!-- 顶栏：厂牌标识、返回主页与色彩模式切换 -->
+    <header class="fixed top-0 w-full z-50 apple-glass-nav-radical transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <!-- 左侧：厂牌 Logo + 标题（支持点击返回主页） -->
+            <div class="flex items-center space-x-2.5 cursor-pointer hover:opacity-85 transition" onclick="window.location.href='./index.html'" title="返回门户主页">
+                <div class="w-7 h-7 rounded-full brand-logo-frame flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="./logo.png" alt="NIRVANA Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='./logo.jpg';">
+                </div>
+                <div class="flex items-baseline space-x-1.5">
+                    <span class="font-bold text-sm tracking-tight text-neutral-900 dark:text-neutral-100">NIRVANA</span>
+                    <span class="text-xs text-blue-600 dark:text-blue-400 font-medium">导油理论工坊</span>
+                </div>
+            </div>
+
+            <!-- 右侧：返回主页按钮 + 主题切换 -->
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="window.location.href='./index.html'" class="px-3 py-1.5 rounded-full flex items-center space-x-1.5 apple-glass-sub text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs font-medium cursor-pointer shadow-sm select-none">
+                    <span class="text-blue-500 font-bold">←</span>
+                    <span class="hidden sm:inline">返回主页</span>
+                    <span class="sm:hidden">主页</span>
+                </button>
+
+                <button type="button" onclick="toggleTheme()" id="btn-theme-toggle" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:scale-105 active:scale-95 transition text-xs cursor-pointer shadow-sm select-none" title="外观设置">
+                    <span id="theme-icon">🌓</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-16 max-w-6xl mx-auto px-4 sm:px-6 relative z-10 flex-1">
+
+        <!-- =========================================================================
+             导油理论独立模块 (包含: 1. 目数与裁剪 / 2. 关于负压 / 3. 理解VM)
+             ========================================================================= -->
+        <section id="view-theory" class="space-y-6">
+            <!-- 顶部分段控制器：3 项理论子模块 -->
+            <div class="flex justify-center mb-6">
+                <div class="p-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] apple-glass-sub flex space-x-1 relative overflow-x-auto no-scrollbar max-w-full">
+                    <button onclick="switchTheoryTab('sub-physics')" id="t-nav-sub-physics" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all whitespace-nowrap relative z-10">目数与裁剪</button>
+                    <button onclick="switchTheoryTab('sub-pressure')" id="t-nav-sub-pressure" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">关于负压</button>
+                    <button onclick="switchTheoryTab('sub-vm')" id="t-nav-sub-vm" class="px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10">理解VM</button>
+                </div>
+            </div>
+
+            <!-- 子模块 1: 目数与裁剪 -->
+            <div id="sub-physics" class="theory-sub-view active">
+                <div class="mb-5">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">NIRVANA LAB // Capillary Physics</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">目数与裁剪</h2>
+                    <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                        调节金属网目数、烟油粘度与裁剪织造角度，直观观测微孔毛细爬升阻力与导油动态。
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-7 apple-glass p-3 h-[360px] relative overflow-hidden">
+                        <div class="absolute top-4 left-4 z-10 text-[10px] font-mono text-neutral-500 apple-glass-sub px-2.5 py-1 rounded-full">
+                            Capillary Canvas // 2D Flow
+                        </div>
+                        <canvas id="capillary-canvas" class="w-full h-full rounded-xl bg-neutral-100/50 dark:bg-neutral-950/50"></canvas>
+                    </div>
+
+                    <div class="lg:col-span-5 apple-glass p-6 flex flex-col justify-center space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1.5">
+                                <span class="text-neutral-600 dark:text-neutral-400">金属网目数 (Mesh Count)</span>
+                                <span id="lbl-mesh" class="text-neutral-900 dark:text-neutral-100 font-mono font-semibold">#200</span>
+                            </div>
+                            <input type="range" id="sim-mesh" min="180" max="325" value="200" step="5" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer" oninput="updateSim()">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1.5">
+                                <span class="text-neutral-600 dark:text-neutral-400">烟油粘度 (VG Ratio)</span>
+                                <span id="lbl-vg" class="text-neutral-900 dark:text-neutral-100 font-mono font-semibold">70% VG</span>
+                            </div>
+                            <input type="range" id="sim-vg" min="40" max="85" value="70" step="5" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer" oninput="updateSim()">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1.5">
+                                <span class="text-neutral-600 dark:text-neutral-400">裁剪角度</span>
+                                <span id="lbl-cut-angle" class="text-neutral-900 dark:text-neutral-100 font-semibold">45° (缝隙向上直通)</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1.5 p-1 rounded-xl apple-glass-sub">
+                                <button type="button" id="btn-cut-45" onclick="setCutAngle(45)" class="py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition hover:scale-[1.02] active:scale-[0.98]">45° 斜裁</button>
+                                <button type="button" id="btn-cut-90" onclick="setCutAngle(90)" class="py-1.5 text-xs font-medium rounded-lg text-neutral-500 transition hover:scale-[1.02] active:scale-[0.98]">90° 顺裁</button>
+                                <button type="button" id="btn-cut-135" onclick="setCutAngle(135)" class="py-1.5 text-xs font-medium rounded-lg text-neutral-500 transition hover:scale-[1.02] active:scale-[0.98]">135° (U网)</button>
+                            </div>
+                        </div>
+
+                        <div id="sim-alert" class="p-3.5 apple-glass-sub text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
+                            45° 裁剪使得条纹缝隙垂直向上直通，流体爬升阻力消除，无惧连抽。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 子模块 2: 关于负压 -->
+            <div id="sub-pressure" class="theory-sub-view hidden">
+                <div class="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">NIRVANA DYNAMICS // Pneumatic Flow</span>
+                        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">关于负压</h2>
+                        <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                            基于 200 目、3.0mm 径各向异性导油网棒。调节气道参数，通过高动态流体力学拉伸感知气动水锤与真空锁工况。
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="pResetGolden()" class="px-3.5 py-1.5 rounded-xl apple-glass text-xs font-semibold text-blue-600 dark:text-blue-400 hover:scale-105 active:scale-95 transition shadow-sm">
+                            ✨ MTL 黄金卡位
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                    <!-- 左侧: 2D 解剖图 Canvas -->
+                    <div class="lg:col-span-7 apple-glass p-4 relative overflow-hidden flex flex-col items-center justify-between min-h-[560px]">
+                        <div class="w-full flex items-center justify-between mb-2">
+                            <div class="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span>Genesis 侧切面解剖图 (2D Flow Blueprint)</span>
+                            </div>
+                            <span id="p-tag-state" class="apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-neutral-500 font-semibold transition-colors duration-300">
+                                待机平衡 (T0)
+                            </span>
+                        </div>
+
+                        <div class="w-full flex-1 rounded-xl bg-neutral-950/80 border border-black/10 dark:border-white/10 relative overflow-hidden flex items-center justify-center p-2">
+                            <canvas id="pressure-canvas" width="440" height="640" class="w-auto h-full max-h-[500px] aspect-[2/3] block drop-shadow-md select-none"></canvas>
+                            
+                            <button id="btn-p-fire" class="absolute bottom-6 right-6 z-20 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-white font-semibold shadow-[0_0_15px_rgba(6,182,212,0.4)] flex flex-col items-center justify-center select-none transition-all duration-200 touch-manipulation cursor-pointer border border-white/10 hover:scale-105">
+                                <span class="text-xs font-mono font-bold tracking-wider">FIRE</span>
+                                <span class="text-[8px] opacity-70 font-mono mt-0.5">长按</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 右侧: 交互控制台与动力学参数 -->
+                    <div class="lg:col-span-5 apple-glass p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08] mb-4">
+                                <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">动力学控制台</h3>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between apple-glass-sub p-2 rounded-xl">
+                                    <div>
+                                        <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200 ml-1">吸力模式 (Mode)</div>
+                                        <div class="text-[10px] text-neutral-400 ml-1" id="p-lbl-mode-desc">MTL: Q=25mL/s, P=3000Pa</div>
+                                    </div>
+                                    <div class="flex space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-lg text-[10px] font-bold">
+                                        <button id="p-mode-mtl" onclick="pSetMode('MTL')" class="px-3 py-1 rounded bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm transition">MTL (口吸)</button>
+                                        <button id="p-mode-dl" onclick="pSetMode('DL')" class="px-3 py-1 rounded text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition">DL (肺吸)</button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1 px-1">
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="font-medium text-neutral-700 dark:text-neutral-300">侧进气孔径 (d_in):</span>
+                                        <span id="p-val-din" class="font-mono font-bold text-blue-600 dark:text-blue-400">1.2 mm</span>
+                                    </div>
+                                    <input type="range" id="p-slider-din" min="0.8" max="2.0" step="0.1" value="1.2" oninput="pUpdateParams()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono">
+                                        <span class="text-cyan-500 font-bold">0.8mm (深负压加速)</span>
+                                        <span>2.0mm (泄压缓流)</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1 px-1">
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="font-medium text-neutral-700 dark:text-neutral-300">滴嘴出口通径 (d_tip):</span>
+                                        <span id="p-val-dtip" class="font-mono font-bold text-blue-600 dark:text-blue-400">4.0 mm</span>
+                                    </div>
+                                    <input type="range" id="p-slider-dtip" min="3.0" max="6.0" step="0.1" value="4.0" oninput="pUpdateParams()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono">
+                                        <span>3.0mm (阻流衰减)</span>
+                                        <span>6.0mm (气流直冲)</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1 px-1">
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="font-medium text-neutral-700 dark:text-neutral-300">甲板通气孔径 (d_vent):</span>
+                                        <span id="p-val-dvent" class="font-mono font-bold text-blue-600 dark:text-blue-400">1.2 mm</span>
+                                    </div>
+                                    <input type="range" id="p-slider-dvent" min="0.6" max="2.0" step="0.1" value="1.2" oninput="pUpdateParams()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono">
+                                        <span class="text-rose-500 font-bold">0.6mm (真空锁死)</span>
+                                        <span class="text-blue-500 font-bold">1.2mm (等压黄金)</span>
+                                        <span>2.0mm (过度泄压)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="p-diag-card" class="p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 transition-all duration-300">
+                            <div class="font-semibold text-emerald-500 flex items-center space-x-1.5">
+                                <span id="p-diag-icon">⚡</span>
+                                <span id="p-diag-title">完美供油 (Golden Sweet Spot)</span>
+                            </div>
+                            <div id="p-diag-desc" class="text-neutral-600 dark:text-neutral-400 text-[11px] leading-relaxed mt-0.5">
+                                抽吸瞬间产生适度气动水锤顶满网芯；松开按键后，通气孔迅速吐出气泡，油仓负压重置。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 子模块 3: 理解VM -->
+            <div id="sub-vm" class="theory-sub-view hidden">
+                <div class="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">NIRVANA ENGINE // Capillary Simulator</span>
+                        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mt-0.5">理解VM</h2>
+                        <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                            基于 MTL (口吸) 极限工况设定：观测 5 折手风琴内芯 + 3 层外包 + 5 级弹性间隙如何达成毛细拉力与储油水膜的黄金平衡点。
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="resetVmGoldenRatio()" class="px-3.5 py-1.5 rounded-xl apple-glass text-xs font-semibold text-blue-600 dark:text-blue-400 hover:scale-105 active:scale-95 transition flex items-center space-x-1 shadow-sm">
+                            <span>✨ MTL 黄金卡位 (5/3/5)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-3 sm:gap-5 items-stretch max-w-3xl mx-auto">
+                        <div class="apple-glass p-3 sm:p-4 relative overflow-hidden flex flex-col justify-between aspect-square">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="text-[11px] sm:text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5 truncate">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                                    <span class="truncate">2D 俯视图 (Top-Down)</span>
+                                </div>
+                                <span class="text-[9px] font-mono text-neutral-400 apple-glass-sub px-1.5 py-0.5 rounded shrink-0 hidden sm:inline">
+                                    45°斜裁
+                                </span>
+                            </div>
+                            <div class="w-full flex-1 rounded-xl bg-neutral-100/50 dark:bg-neutral-950/60 relative flex items-center justify-center overflow-hidden">
+                                <canvas id="vm-top-canvas" class="w-full h-full block"></canvas>
+                                <div class="absolute bottom-1.5 left-2 right-2 text-[8px] sm:text-[9px] font-mono text-neutral-400 pointer-events-none flex items-center justify-center gap-2 bg-black/20 dark:bg-black/40 backdrop-blur-sm py-0.5 px-1.5 rounded-md">
+                                    <span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-[#d2b48c]"></span><span>内芯</span></span>
+                                    <span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-[#64748b]"></span><span>外包</span></span>
+                                    <span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-[#2997ff]"></span><span>微隙</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-glass p-3 sm:p-4 relative overflow-hidden flex flex-col justify-between aspect-square">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="text-[11px] sm:text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center space-x-1.5 truncate">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span class="truncate">2D 正视图 (Front View)</span>
+                                </div>
+                                <span id="vm-test-tag" class="apple-glass-sub px-1.5 py-0.5 rounded text-[9px] font-mono text-blue-600 dark:text-blue-400 font-medium shrink-0">
+                                    正常湿润
+                                </span>
+                            </div>
+                            <div class="w-full flex-1 rounded-xl bg-neutral-100/50 dark:bg-neutral-950/60 relative overflow-hidden flex items-center justify-center">
+                                <canvas id="vm-front-canvas" class="w-full h-full block"></canvas>
+                                <div class="absolute top-1.5 left-2 text-[8px] sm:text-[9px] font-mono text-neutral-400 pointer-events-none space-y-0.5 bg-black/20 dark:bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded">
+                                    <div>液面状态：<span id="lbl-climb-rate" class="text-neutral-800 dark:text-neutral-200 font-bold">始终在线圈上方</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="apple-glass p-4 sm:p-6 space-y-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">核心控制台 // 参数设定与物理监控</h3>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hidden sm:inline">MTL 极限基准</span>
+                            </div>
+                            <button onclick="triggerVmBurnTest()" id="btn-vm-test" class="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition shadow-md hover:scale-105 active:scale-95 flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                <span>🔥 点火测试</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                            <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-medium text-neutral-700 dark:text-neutral-300">
+                                        VM 折数：<span id="vm-val-fold" class="font-mono font-bold text-blue-600 dark:text-blue-400">5 折</span>
+                                    </span>
+                                    <span class="text-[10px] font-mono text-neutral-400" id="vm-tip-fold">消耗网宽 5mm</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <input type="range" id="vm-slider-fold" min="1" max="10" value="5" step="1" oninput="onVmParamChange()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono mt-0.5 px-0.5">
+                                        <span>1折 (稀疏)</span>
+                                        <span class="text-blue-500 font-bold">● 5折 (标配)</span>
+                                        <span>10折 (拥挤)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-medium text-neutral-700 dark:text-neutral-300">
+                                        外包层数：<span id="vm-val-layer" class="font-mono font-bold text-blue-600 dark:text-blue-400">3 层</span>
+                                    </span>
+                                    <span class="text-[10px] font-mono text-neutral-400" id="vm-tip-layer">基质厚度适中</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <input type="range" id="vm-slider-layer" min="1" max="10" value="3" step="1" oninput="onVmParamChange()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono mt-0.5 px-0.5">
+                                        <span>1层 (储液薄)</span>
+                                        <span class="text-blue-500 font-bold">● 3层 (黄金)</span>
+                                        <span>10层 (闷死芯)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="apple-glass-sub p-3.5 rounded-xl space-y-1.5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-medium text-neutral-700 dark:text-neutral-300">
+                                        外包间隙：<span id="vm-val-gap" class="font-mono font-bold text-blue-600 dark:text-blue-400">5 级</span>
+                                    </span>
+                                    <span class="text-[10px] font-mono text-neutral-400" id="vm-tip-gap">适度弹性呼吸</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <input type="range" id="vm-slider-gap" min="1" max="10" value="5" step="1" oninput="onVmParamChange()" class="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer">
+                                    <div class="flex justify-between text-[9px] text-neutral-400 font-mono mt-0.5 px-0.5">
+                                        <span>1级 (压死堵死)</span>
+                                        <span class="text-blue-500 font-bold">● 5级 (弹性)</span>
+                                        <span>10级 (松散漏油)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                            <div id="vm-status-card" class="md:col-span-6 p-4 apple-glass-sub rounded-xl text-xs space-y-1.5 leading-relaxed flex flex-col justify-center">
+                                <div class="font-semibold text-blue-600 dark:text-blue-400 flex items-center space-x-1.5">
+                                    <span>⚡</span>
+                                    <span id="vm-status-title">黄金流体工况 (Optimal MTL)</span>
+                                </div>
+                                <div id="vm-status-desc" class="text-neutral-600 dark:text-neutral-400 text-[11px]">
+                                    5折垂直毛细壁面与适度弹性间隙消除了内部气阻，3层外包提供坚韧的储液膜，高频连抽供油不断档。
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-6 grid grid-cols-2 gap-3 font-mono">
+                                <div class="p-3 apple-glass-sub rounded-xl flex flex-col justify-center">
+                                    <div class="text-[9px] uppercase text-neutral-400">Wicking Speed // 导油速度</div>
+                                    <div class="text-sm font-bold mt-0.5 flex items-baseline space-x-1">
+                                        <span id="stat-wicking-speed" class="text-blue-600 dark:text-blue-400">96</span>
+                                        <span class="text-[10px] text-neutral-400 font-normal">mm/s</span>
+                                    </div>
+                                    <div class="w-full h-1 bg-black/10 dark:bg-white/10 rounded-full mt-1.5 overflow-hidden">
+                                        <div id="bar-wicking-speed" class="h-full bg-blue-500 rounded-full transition-all duration-300" style="width: 96%;"></div>
+                                    </div>
+                                </div>
+                                <div class="p-3 apple-glass-sub rounded-xl flex flex-col justify-center">
+                                    <div class="text-[9px] uppercase text-neutral-400">Juice Capacity // 储油缓冲</div>
+                                    <div class="text-sm font-bold mt-0.5 flex items-baseline space-x-1">
+                                        <span id="stat-juice-capacity" class="text-emerald-500">92</span>
+                                        <span class="text-[10px] text-neutral-400 font-normal">%</span>
+                                    </div>
+                                    <div class="w-full h-1 bg-black/10 dark:bg-white/10 rounded-full mt-1.5 overflow-hidden">
+                                        <div id="bar-juice-capacity" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 92%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 页脚版权与厂牌信息 -->
+    <footer class="w-full py-5 text-center text-xs text-neutral-400 dark:text-neutral-600 border-t border-black/[0.04] dark:border-white/[0.06] relative z-10 font-mono">
+        NIRVANA VAPE LABEL © 2026 // Genesis Hub 导油理论物理工坊
+    </footer>
+
+    <!-- 交互逻辑脚本 -->
+    <script>
+        // ----------------------------------------------------
+        // 1. 系统模式动态监听与外观三态管理 (Auto -> Dark -> Light -> Auto)
+        // ----------------------------------------------------
+        var currentThemeMode = 'auto'; // 'auto' | 'dark' | 'light'
+        var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            var icon = document.getElementById('theme-icon');
+            var btn = document.getElementById('btn-theme-toggle');
+            if (!icon) return;
+
+            if (currentThemeMode === 'auto') {
+                icon.innerText = '🌓';
+                if (btn) btn.title = '外观模式：跟随系统 (点击切换)';
+            } else if (currentThemeMode === 'dark') {
+                icon.innerText = '🌙';
+                if (btn) btn.title = '外观模式：深色模式 (点击切换)';
+            } else {
+                icon.innerText = '☀';
+                if (btn) btn.title = '外观模式：浅色模式 (点击切换)';
+            }
+        }
+
+        function initTheme() {
+            try {
+                var saved = localStorage.getItem('genesis_theme_mode');
+                if (saved === 'dark' || saved === 'light') {
+                    currentThemeMode = saved;
+                } else {
+                    currentThemeMode = 'auto';
+                }
+            } catch(e) {
+                currentThemeMode = 'auto';
+            }
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+
+            var handleMediaChange = function(e) {
+                if (currentThemeMode === 'auto') {
+                    applyTheme(e.matches);
+                }
+            };
+
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleMediaChange);
+            } else if (mediaQuery.addListener) {
+                mediaQuery.addListener(handleMediaChange);
+            }
+        }
+
+        function toggleTheme() {
+            if (currentThemeMode === 'auto') {
+                currentThemeMode = mediaQuery.matches ? 'light' : 'dark';
+            } else if (currentThemeMode === 'dark') {
+                currentThemeMode = 'light';
+            } else if (currentThemeMode === 'light') {
+                currentThemeMode = 'auto';
+            }
+
+            try {
+                if (currentThemeMode === 'auto') {
+                    localStorage.removeItem('genesis_theme_mode');
+                } else {
+                    localStorage.setItem('genesis_theme_mode', currentThemeMode);
+                }
+            } catch(e) {}
+
+            if (currentThemeMode === 'auto') {
+                applyTheme(mediaQuery.matches);
+            } else {
+                applyTheme(currentThemeMode === 'dark');
+            }
+        }
+
+        // ----------------------------------------------------
+        // 2. 理论子模块切换路由控制
+        // ----------------------------------------------------
+        var curTheoryTab = 'sub-physics';
+
+        function switchTheoryTab(subId) {
+            curTheoryTab = subId;
+            var subViews = ['sub-physics', 'sub-pressure', 'sub-vm'];
+            for (var i = 0; i < subViews.length; i++) {
+                var id = subViews[i];
+                var el = document.getElementById(id);
+                var btn = document.getElementById('t-nav-' + id);
+                
+                if (el) {
+                    if (id === subId) {
+                        el.classList.remove('hidden'); 
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active'); 
+                        el.classList.add('hidden');
+                    }
+                }
+                if (btn) {
+                    if (id === subId) {
+                        btn.className = "px-4 sm:px-5 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition-all whitespace-nowrap relative z-10";
+                    } else {
+                        btn.className = "px-4 sm:px-5 py-1.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all whitespace-nowrap relative z-10";
+                    }
+                }
+            }
+
+            if (subId === 'sub-physics' && typeof resizeSim === 'function') setTimeout(resizeSim, 50);
+            else if (subId === 'sub-vm' && typeof resizeVmCanvases === 'function') setTimeout(resizeVmCanvases, 50);
+            else if (subId === 'sub-pressure' && typeof pResizeCanvas === 'function') setTimeout(pResizeCanvas, 50);
+        }
+
+        // ----------------------------------------------------
+        // 3. 目数与裁剪模块 (Capillary Physics)
+        // ----------------------------------------------------
+        var simCtx, simCanvas, simParticles = []; 
+        var curCutAngle = 45;
+
+        function setCutAngle(angle) {
+            curCutAngle = angle; 
+            var lbl = document.getElementById('lbl-cut-angle'); 
+            var angleBtns = [45, 90, 135];
+            for (var i = 0; i < angleBtns.length; i++) {
+                var a = angleBtns[i]; 
+                var btn = document.getElementById('btn-cut-' + a);
+                if (btn) {
+                    if (a === angle) {
+                        btn.className = "py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm transition hover:scale-[1.02] active:scale-[0.98]";
+                    } else {
+                        btn.className = "py-1.5 text-xs font-medium rounded-lg text-neutral-500 transition hover:scale-[1.02] active:scale-[0.98]";
+                    }
+                }
+            }
+            if (angle === 45) {
+                lbl.innerText = "45° (缝隙向上直通)";
+            } else if (angle === 90) {
+                lbl.innerText = "90° (斜向45°爬升)";
+            } else {
+                lbl.innerText = "135° (横纹理 / 一般用于U网)";
+            }
+            updateSim();
+        }
+
+        function initCapillarySim() {
+            simCanvas = document.getElementById('capillary-canvas');
+            if(!simCanvas) return;
+            simCtx = simCanvas.getContext('2d');
+            resizeSim();
+            window.addEventListener('resize', resizeSim);
+            simParticles = [];
+            for(var i = 0; i < 80; i++) {
+                simParticles.push({ x: 0, y: 500, speed: Math.random() * 1.5 + 0.5, size: Math.random() * 1.5 + 1, active: false });
+            }
+            requestAnimationFrame(drawSim);
+        }
+
+        function resizeSim() {
+            if(!simCanvas) return;
+            var cw = simCanvas.clientWidth;
+            var ch = simCanvas.clientHeight;
+            if (cw > 0 && ch > 0) {
+                simCanvas.width = cw;
+                simCanvas.height = ch;
+            }
+        }
+
+        function drawSim() {
+            if(!simCtx || !simCanvas) return;
+            var w = simCanvas.width, h = simCanvas.height;
+            if (w === 0 || h === 0) {
+                requestAnimationFrame(drawSim);
+                return;
+            }
+            simCtx.clearRect(0, 0, w, h);
+
+            var meshVal = parseInt(document.getElementById('sim-mesh').value) || 200;
+            var vgVal = parseInt(document.getElementById('sim-vg').value) || 70;
+
+            simCtx.fillStyle = 'rgba(41, 151, 255, 0.12)';
+            simCtx.fillRect(0, h - 50, w, 50); 
+            
+            var startX = w/2 - 40, widthX = 80;
+            var topY = 30, botY = h - 30;
+            var heightH = botY - topY;
+
+            simCtx.save();
+            simCtx.beginPath();
+            simCtx.rect(startX, topY, widthX, heightH);
+            simCtx.clip();
+
+            simCtx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+            simCtx.fillRect(startX, topY, widthX, heightH);
+
+            simCtx.strokeStyle = 'rgba(120, 120, 128, 0.35)'; 
+            simCtx.lineWidth = 1.2;
+            var spacing = meshVal > 280 ? 6 : 9;
+
+            simCtx.beginPath();
+            if (curCutAngle === 45) {
+                for (var x = startX + spacing; x < startX + widthX; x += spacing) {
+                    simCtx.moveTo(x, topY);
+                    simCtx.lineTo(x, botY);
+                }
+            } else if (curCutAngle === 90) {
+                var dOffset = spacing * 1.414;
+                for (var c = -heightH; c < widthX + heightH; c += dOffset) {
+                    simCtx.moveTo(startX + c, botY);
+                    simCtx.lineTo(startX + c + heightH, topY);
+                }
+            } else {
+                for (var y = topY + spacing; y < botY; y += spacing) {
+                    simCtx.moveTo(startX, y);
+                    simCtx.lineTo(startX + widthX, y);
+                }
+            }
+            simCtx.stroke();
+            simCtx.restore();
+
+            simCtx.strokeStyle = 'rgba(120, 120, 128, 0.4)'; 
+            simCtx.lineWidth = 1.5;
+            simCtx.strokeRect(startX, topY, widthX, heightH);
+
+            var flowMultiplier = 1.0;
+            if (curCutAngle === 45) flowMultiplier = 1.7;
+            else if (curCutAngle === 90) flowMultiplier = 1.0;
+            else flowMultiplier = 0.22;
+
+            if (meshVal > 280 && vgVal > 65) flowMultiplier *= 0.35;
+            else if (meshVal <= 220) flowMultiplier *= 1.2;
+
+            var grad = simCtx.createLinearGradient(0, topY, 0, topY + 70);
+            grad.addColorStop(0, 'rgba(41, 151, 255, 0.38)');
+            grad.addColorStop(1, 'rgba(41, 151, 255, 0)');
+            simCtx.fillStyle = grad;
+            simCtx.fillRect(startX, topY, widthX, 70);
+
+            simCtx.fillStyle = '#2997ff';
+            for (var pIdx = 0; pIdx < simParticles.length; pIdx++) {
+                var p = simParticles[pIdx];
+                if(!p.active) {
+                    if(Math.random() < 0.05 * flowMultiplier) {
+                        p.active = true; 
+                        p.x = startX + 6 + Math.random() * (widthX - 12); 
+                        p.y = botY + 10;
+                    }
+                } else {
+                    p.y -= p.speed * flowMultiplier;
+                    
+                    if (curCutAngle === 90) {
+                        p.x += (p.speed * 0.55) * flowMultiplier;
+                        if (p.x > startX + widthX - 6) p.x = startX + 6;
+                    }
+
+                    simCtx.beginPath(); 
+                    simCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2); 
+                    simCtx.fill();
+                    
+                    if(p.y < topY + 20) {
+                        simCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        simCtx.beginPath(); 
+                        simCtx.arc(p.x + (Math.random()-0.5)*16, p.y - 6, p.size * 2.8, 0, Math.PI * 2); 
+                        simCtx.fill();
+                        simCtx.fillStyle = '#2997ff'; 
+                        p.active = false;
+                    }
+                }
+            }
+            requestAnimationFrame(drawSim);
+        }
+
+        function updateSim() {
+            var meshEl = document.getElementById('sim-mesh');
+            var vgEl = document.getElementById('sim-vg');
+            if (!meshEl || !vgEl) return;
+            var meshVal = parseInt(meshEl.value);
+            var vgVal = parseInt(vgEl.value);
+
+            var lblMesh = document.getElementById('lbl-mesh');
+            var lblVg = document.getElementById('lbl-vg');
+            if (lblMesh) lblMesh.innerText = '#' + meshVal;
+            if (lblVg) lblVg.innerText = vgVal + '% VG';
+            
+            var alertBox = document.getElementById('sim-alert');
+            if (!alertBox) return;
+            if (curCutAngle === 135) {
+                alertBox.innerText = "📌 U网专用工况：135° 裁剪呈现横向纹理，一般专用于 U网 (U-Wick) 结构，提供弯曲跨段锁油防漏；常规直网爬升阻力偏大。";
+            } else if (meshVal > 280 && vgVal > 65) {
+                alertBox.innerText = "⚠ 粘滞阻滞：高致密网目配合高 VG 粘度油流速放缓，建议采用 45° 裁剪直通补救。";
+            } else if (curCutAngle === 45) {
+                alertBox.innerText = "⚡ 黄金工况：45° 裁剪使得条纹缝隙垂直向上直通，流体爬升阻力消除，无惧连抽！";
+            } else {
+                alertBox.innerText = "✓ 稳定运行：90° 裁剪呈斜向 45° 爬升，兼顾储液量与爬升速度。";
+            }
+        }
+
+        // ----------------------------------------------------
+        // 4. 理解 VM 模拟器模块 (Capillary Engine)
+        // ----------------------------------------------------
+        var vmState = {
+            fold: 5,
+            layer: 3,
+            gap: 5,
+            isTesting: false,
+            testProgress: 0,
+            wickLiquidHeight: 0.95
+        };
+
+        var topCanvas, topCtx, frontCanvas, frontCtx;
+        var vmAnimationId = null;
+
+        function initVmSimulators() {
+            topCanvas = document.getElementById('vm-top-canvas');
+            frontCanvas = document.getElementById('vm-front-canvas');
+            if (!topCanvas || !frontCanvas) return;
+
+            topCtx = topCanvas.getContext('2d');
+            frontCtx = frontCanvas.getContext('2d');
+
+            resizeVmCanvases();
+            window.addEventListener('resize', resizeVmCanvases);
+
+            onVmParamChange();
+
+            if (!vmAnimationId) {
+                renderVmLoop();
+            }
+        }
+
+        function resizeVmCanvases() {
+            if (topCanvas) {
+                var tw = topCanvas.clientWidth, th = topCanvas.clientHeight;
+                if (tw > 0 && th > 0) {
+                    topCanvas.width = tw;
+                    topCanvas.height = th;
+                }
+            }
+            if (frontCanvas) {
+                var fw = frontCanvas.clientWidth, fh = frontCanvas.clientHeight;
+                if (fw > 0 && fh > 0) {
+                    frontCanvas.width = fw;
+                    frontCanvas.height = fh;
+                }
+            }
+        }
+
+        function resetVmGoldenRatio() {
+            document.getElementById('vm-slider-fold').value = 5;
+            document.getElementById('vm-slider-layer').value = 3;
+            document.getElementById('vm-slider-gap').value = 5;
+            onVmParamChange();
+        }
+
+        function onVmParamChange() {
+            var fEl = document.getElementById('vm-slider-fold');
+            var lEl = document.getElementById('vm-slider-layer');
+            var gEl = document.getElementById('vm-slider-gap');
+            if (!fEl || !lEl || !gEl) return;
+
+            vmState.fold = parseInt(fEl.value);
+            vmState.layer = parseInt(lEl.value);
+            vmState.gap = parseInt(gEl.value);
+
+            document.getElementById('vm-val-fold').innerText = vmState.fold + ' 折';
+            document.getElementById('vm-val-layer').innerText = vmState.layer + ' 层';
+            document.getElementById('vm-val-gap').innerText = vmState.gap + ' 级';
+
+            var foldBonus = (vmState.fold === 5) ? 1.0 : (vmState.fold < 5 ? 0.4 + (vmState.fold * 0.12) : Math.max(0.1, 1.0 - (vmState.fold - 5) * 0.18));
+            var gapBonus = (vmState.gap === 5) ? 1.0 : (vmState.gap < 5 ? 0.2 + (vmState.gap * 0.16) : Math.max(0.2, 1.0 - (vmState.gap - 5) * 0.15));
+
+            var wickingSpeed = Math.round(100 * (foldBonus * 0.55 + gapBonus * 0.45));
+            if (vmState.layer >= 7) {
+                wickingSpeed = Math.round(wickingSpeed * Math.max(0.08, 1 - (vmState.layer - 6) * 0.22));
+            }
+
+            var juiceCapacity = Math.round(Math.min(100, vmState.layer * 26 + (vmState.gap * 3)));
+            if (vmState.layer === 1) juiceCapacity = 28;
+
+            document.getElementById('stat-wicking-speed').innerText = wickingSpeed;
+            document.getElementById('stat-juice-capacity').innerText = juiceCapacity;
+            document.getElementById('bar-wicking-speed').style.width = wickingSpeed + '%';
+            document.getElementById('bar-juice-capacity').style.width = juiceCapacity + '%';
+
+            var statusTitle = document.getElementById('vm-status-title');
+            var statusDesc = document.getElementById('vm-status-desc');
+            var climbRateLbl = document.getElementById('lbl-climb-rate');
+
+            if (vmState.fold === 5 && vmState.layer === 3 && (vmState.gap >= 4 && vmState.gap <= 6)) {
+                statusTitle.innerText = "✨ MTL 黄金平衡点 (5折 / 3层 / 弹性间隙)";
+                statusDesc.innerText = "5折手风琴提供最高效垂直毛细平行壁面；3层外包蓄积充沛缓冲水膜；适度弹性间隙让液体无阻爬升并防止气阻。";
+                climbRateLbl.innerText = "始终在线圈上方 (高速无阻)";
+            } else if (vmState.gap <= 2 || vmState.fold >= 9) {
+                statusTitle.innerText = "⚠ 气阻与物理堵塞 (Severe Hydraulic Lock)";
+                statusDesc.innerText = "内芯折叠过度致密或外包彻底压死，毛细通道被金属实体阻断，纵向导油速度出现断崖式下跌。";
+                climbRateLbl.innerText = "在线圈上方 (回填迟缓)";
+            } else if (vmState.layer >= 7) {
+                statusTitle.innerText = "⚠ 外层过度包裹挤闭核心 (Core Collapse)";
+                statusDesc.innerText = "外层卷绕过厚向内剧烈压迫，彻底闭塞了 5 折手风琴的垂直间隙，系统流体力学崩溃，高频连抽必然糊芯。";
+                climbRateLbl.innerText = "内芯挤闭 (断油预警)";
+            } else if (vmState.layer === 1) {
+                statusTitle.innerText = "⚠ 储油缓冲薄弱 (Low Capacity Warning)";
+                statusDesc.innerText = "外包仅有 1 层，缺乏必要的静态液体保持力 (Juice Retention)，稍有连抽线圈周围水膜瞬间蒸发干烧。";
+                climbRateLbl.innerText = "存量薄弱 (易干烧)";
+            } else {
+                statusTitle.innerText = "✓ 亚平衡工况 (Sub-Optimal Condition)";
+                statusDesc.innerText = "参数在容错区间内运转，但未达到口吸极限工况下的最高能效，微调至 5/3/5 体验最佳口感。";
+                climbRateLbl.innerText = "在线圈上方 (中等回填)";
+            }
+        }
+
+        function triggerVmBurnTest() {
+            if (vmState.isTesting) return;
+            vmState.isTesting = true;
+            vmState.testProgress = 0;
+            var tag = document.getElementById('vm-test-tag');
+            if (tag) {
+                tag.innerText = "连抽消耗中...";
+                tag.className = "apple-glass-sub px-1.5 py-0.5 rounded text-[9px] font-mono text-orange-500 font-bold shrink-0 animate-pulse";
+            }
+        }
+
+        function renderVmLoop() {
+            drawVmTopView();
+            drawVmFrontView();
+            vmAnimationId = requestAnimationFrame(renderVmLoop);
+        }
+
+        function drawVmTopView() {
+            if (!topCtx || !topCanvas) return;
+            var w = topCanvas.width, h = topCanvas.height;
+            if (w === 0 || h === 0) return;
+            topCtx.clearRect(0, 0, w, h);
+
+            var cx = w / 2;
+            var cy = h / 2;
+            var R_hole = Math.min(w, h) * 0.38; 
+
+            topCtx.strokeStyle = 'rgba(130, 135, 145, 0.35)';
+            topCtx.lineWidth = 2.5;
+            topCtx.beginPath();
+            topCtx.arc(cx, cy, R_hole, 0, Math.PI * 2);
+            topCtx.stroke();
+
+            topCtx.strokeStyle = 'rgba(210, 180, 140, 0.45)';
+            topCtx.lineWidth = 1.2;
+            topCtx.beginPath();
+            topCtx.arc(cx, cy, R_hole + 4, 0, Math.PI * 2);
+            topCtx.stroke();
+
+            var gapFactor = (vmState.gap - 5) * 1.5; 
+            var R_outer_wrap = Math.min(R_hole - 3, (R_hole * 0.65) + (vmState.layer * 1.8) + gapFactor);
+
+            var folds = vmState.fold;
+            var coreWidth = Math.min(R_outer_wrap * 0.72, 8 + folds * 2.8);
+            var foldPitch = coreWidth / folds;
+            var pleatHeight = (R_hole * 0.5) - (folds > 6 ? (folds - 6) * 1.2 : 0);
+
+            topCtx.save();
+            topCtx.translate(cx, cy);
+            topCtx.rotate(Math.PI / 4);
+
+            topCtx.strokeStyle = 'rgba(41, 151, 255, 0.32)';
+            topCtx.lineWidth = 5;
+            topCtx.lineCap = 'round';
+            topCtx.lineJoin = 'round';
+            topCtx.beginPath();
+            var startX = -coreWidth / 2;
+            for (var i = 0; i <= folds; i++) {
+                var px = startX + i * foldPitch;
+                var py = (i % 2 === 0 ? -1 : 1) * (pleatHeight * 0.5);
+                if (i === 0) topCtx.moveTo(px, py);
+                else topCtx.lineTo(px, py);
+            }
+            topCtx.stroke();
+
+            topCtx.strokeStyle = '#d2b48c'; 
+            topCtx.lineWidth = 2.0;
+            topCtx.beginPath();
+            for (var j = 0; j <= folds; j++) {
+                var fx = startX + j * foldPitch;
+                var fy = (j % 2 === 0 ? -1 : 1) * (pleatHeight * 0.5);
+                if (j === 0) topCtx.moveTo(fx, fy);
+                else topCtx.lineTo(fx, fy);
+            }
+            topCtx.stroke();
+
+            topCtx.restore();
+
+            var layers = vmState.layer;
+            topCtx.strokeStyle = 'rgba(148, 163, 184, 0.85)';
+            topCtx.lineWidth = 1.5;
+
+            var rBase = (coreWidth * 0.58) + 3;
+            var rStep = (R_outer_wrap - rBase) / Math.max(1, layers);
+
+            for (var l = 1; l <= layers; l++) {
+                var curR = rBase + l * rStep;
+                topCtx.beginPath();
+                topCtx.arc(cx, cy, curR, 0, Math.PI * 2);
+                topCtx.stroke();
+
+                if (vmState.gap >= 3 && vmState.gap <= 7) {
+                    topCtx.strokeStyle = 'rgba(41, 151, 255, 0.18)';
+                    topCtx.lineWidth = 1;
+                    topCtx.beginPath();
+                    topCtx.arc(cx, cy, curR - (rStep * 0.5), 0, Math.PI * 2);
+                    topCtx.stroke();
+                    topCtx.strokeStyle = 'rgba(148, 163, 184, 0.85)';
+                    topCtx.lineWidth = 1.5;
+                }
+            }
+
+            topCtx.fillStyle = '#101216';
+            topCtx.beginPath();
+            topCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+            topCtx.fill();
+        }
+
+        function drawVmFrontView() {
+            if (!frontCtx || !frontCanvas) return;
+            var w = frontCanvas.width, h = frontCanvas.height;
+            if (w === 0 || h === 0) return;
+            frontCtx.clearRect(0, 0, w, h);
+
+            var tankY = h - 34;
+            var wickX = w / 2;
+            var wickW = Math.min(32, w * 0.16);
+            var wickTopY = 20;
+            var wickH = tankY + 20 - wickTopY;
+
+            var coilStartY = wickTopY + (wickH * 0.32);
+            var coilWireThick = 3.2; 
+            var coilPitch = coilWireThick + 0.3; 
+            var coilTopWireY = coilStartY;
+
+            var maxWickingSpeed = (parseInt(document.getElementById('stat-wicking-speed').innerText) || 90) / 100;
+            var juiceCapFactor = (parseInt(document.getElementById('stat-juice-capacity').innerText) || 90) / 100;
+
+            var baselineEquilibrium = 0.94;
+            if (vmState.gap <= 2 || vmState.fold >= 9) baselineEquilibrium = 0.89;
+            else if (vmState.fold === 5 && vmState.layer === 3) baselineEquilibrium = 0.97;
+            else baselineEquilibrium = 0.92;
+
+            if (vmState.isTesting) {
+                vmState.testProgress += 0.025;
+                var burnEvapDip = 0.005;
+                var refillRate = maxWickingSpeed * 0.0035;
+
+                vmState.wickLiquidHeight -= (burnEvapDip - refillRate);
+                if (vmState.wickLiquidHeight < 0.86) vmState.wickLiquidHeight = 0.86;
+
+                if (vmState.testProgress >= 1.0) {
+                    vmState.isTesting = false;
+                    var tag = document.getElementById('vm-test-tag');
+                    if (tag) {
+                        tag.innerText = "已回填满溢";
+                        tag.className = "apple-glass-sub px-1.5 py-0.5 rounded text-[9px] font-mono text-emerald-500 font-bold shrink-0";
+                    }
+                }
+            } else {
+                vmState.wickLiquidHeight += (baselineEquilibrium - vmState.wickLiquidHeight) * 0.06;
+            }
+
+            frontCtx.fillStyle = 'rgba(237, 184, 100, 0.15)';
+            frontCtx.fillRect(10, tankY - 10, w - 20, 32);
+            frontCtx.strokeStyle = 'rgba(237, 184, 100, 0.4)';
+            frontCtx.lineWidth = 1.2;
+            frontCtx.strokeRect(10, tankY - 10, w - 20, 32);
+
+            frontCtx.fillStyle = 'rgba(41, 151, 255, 0.22)';
+            frontCtx.fillRect(11, tankY, w - 22, 22);
+
+            var wickLeft = wickX - wickW / 2;
+            frontCtx.fillStyle = '#2d333b';
+            frontCtx.fillRect(wickLeft, wickTopY, wickW, wickH);
+
+            frontCtx.strokeStyle = 'rgba(210, 180, 140, 0.4)';
+            frontCtx.lineWidth = 1;
+            var numLines = Math.min(7, vmState.fold);
+            var stepX = (wickW - 6) / (numLines + 1);
+            for (var il = 1; il <= numLines; il++) {
+                frontCtx.beginPath();
+                frontCtx.moveTo(wickLeft + 3 + il * stepX, wickTopY + 4);
+                frontCtx.lineTo(wickLeft + 3 + il * stepX, wickTopY + wickH - 3);
+                frontCtx.stroke();
+            }
+
+            var climbDistance = wickH * vmState.wickLiquidHeight;
+            var liquidActualTop = (tankY + 14) - climbDistance;
+            if (liquidActualTop > coilTopWireY - 4) {
+                liquidActualTop = coilTopWireY - 4;
+            }
+            var liquidClimbHeight = (tankY + 14) - liquidActualTop;
+
+            var climbGrad = frontCtx.createLinearGradient(0, tankY + 14, 0, liquidActualTop);
+            var alphaBase = Math.min(0.85, 0.28 + (juiceCapFactor * 0.55));
+            climbGrad.addColorStop(0, 'rgba(41, 151, 255, ' + alphaBase + ')');
+            climbGrad.addColorStop(1, 'rgba(0, 113, 227, ' + (alphaBase * 0.8) + ')');
+
+            frontCtx.fillStyle = climbGrad;
+            frontCtx.fillRect(wickLeft, liquidActualTop, wickW, liquidClimbHeight);
+
+            if (vmState.layer >= 2) {
+                var filmAlpha = Math.min(0.7, 0.15 + (vmState.layer * 0.055));
+                var filmThickness = Math.min(3.2, 0.8 + (vmState.layer * 0.25));
+                frontCtx.fillStyle = 'rgba(41, 151, 255, ' + filmAlpha + ')';
+                frontCtx.fillRect(wickLeft - filmThickness, liquidActualTop + 3, filmThickness, liquidClimbHeight - 8);
+                frontCtx.fillRect(wickLeft + wickW, liquidActualTop + 3, filmThickness, liquidClimbHeight - 8);
+            }
+
+            for (var c = 0; c < 4; c++) {
+                var curCoilY = coilStartY + c * coilPitch;
+                if (vmState.isTesting) {
+                    frontCtx.strokeStyle = '#ff4500';
+                    frontCtx.lineWidth = coilWireThick;
+                    frontCtx.shadowColor = '#ff4500';
+                    frontCtx.shadowBlur = 6;
+                } else {
+                    frontCtx.strokeStyle = '#6c8574';
+                    frontCtx.lineWidth = coilWireThick;
+                    frontCtx.shadowBlur = 0;
+                }
+
+                frontCtx.beginPath();
+                frontCtx.moveTo(wickLeft - 3, curCoilY + 1.2);
+                frontCtx.bezierCurveTo(wickLeft + wickW * 0.3, curCoilY - 1.2, wickLeft + wickW * 0.7, curCoilY + 1.6, wickLeft + wickW + 3, curCoilY - 0.6);
+                frontCtx.stroke();
+                frontCtx.shadowBlur = 0;
+            }
+
+            frontCtx.fillStyle = '#22c55e';
+            frontCtx.fillRect(wickLeft + 2, tankY + 18, wickW - 4, 1.5);
+        }
+
+        // ==========================================
+        // 5. 关于负压 (Pneumatic Dynamics Engine)
+        // ==========================================
+        var pnMESH = {
+            baseCapillarySpeed: 3.2 
+        };
+
+        var pnState = {
+            mode: 'MTL',
+            d_in: 1.2,
+            d_tip: 4.0,
+            d_vent: 1.2,
+            isFiring: false,
+            tankVacuumAcc: 0,
+            failedPuffCount: 0,
+            wickFillRatio: 0.95,
+            tankLevelY: 410,
+            isFlooding: false,
+            isDryHit: false,
+            holdTime: 0,
+            P_ch: 0,
+            v_init: 0,
+            v_steady: 0,
+            v_wick: 3.2,
+            t_eq: 0.035,
+            bubbles: [],
+            airflowParticles: [],
+            vaporParticles: [],
+            beads: [],
+            lastTime: 0,
+            reqId: null
+        };
+
+        var pCanvas, pCtx;
+
+        function pResizeCanvas() {
+            if (pCanvas && pCanvas.clientWidth > 0 && pCanvas.clientHeight > 0) {
+                pCanvas.width = 440; 
+                pCanvas.height = 640;
+            }
+        }
+
+        function pnCalculate(inputs, tankVac) {
+            var P_user = (inputs.mode === 'MTL') ? 3500 : 1200;
+            var leak = Math.pow(inputs.d_in / 1.2, 6.0) * 2.0; 
+            var vent = Math.pow(inputs.d_vent / 1.2, 3.5) * 1.5;
+            var tipEff = Math.pow(inputs.d_tip / 4.0, 3.0);
+            
+            var P_ch = (P_user * tipEff) / (0.15 + leak + vent);
+            var v_steady = pnMESH.baseCapillarySpeed + Math.pow(P_ch / 300, 1.2) * 1.5;
+            var v_init = v_steady + Math.pow(P_ch / 100, 2.2) * 1.5;
+            var t_eq = 0.045 / Math.pow(inputs.d_vent / 1.2, 2.4);
+            var canBubble = (inputs.d_vent >= 0.9) && (tankVac < 300);
+
+            return {
+                P_ch: Math.round(P_ch),
+                v_steady: v_steady,
+                v_init: parseFloat(v_init.toFixed(2)),
+                t_eq: parseFloat(t_eq.toFixed(3)),
+                canBubble: canBubble
+            };
+        }
+
+        function initFluidBeads() {
+            pnState.beads = [];
+            for (var i = 0; i < 180; i++) {
+                pnState.beads.push({
+                    x: 205 + 4 + Math.random() * 22,
+                    y: 180 + Math.random() * 240,
+                    size: 1.4 + Math.random() * 1.6,
+                    speed: Math.random() * 0.8 + 0.5,
+                    alpha: 0.45 + Math.random() * 0.55
+                });
+            }
+        }
+
+        function initPressureSim() {
+            pCanvas = document.getElementById('pressure-canvas');
+            if (!pCanvas) return;
+            pCtx = pCanvas.getContext('2d');
+            pResizeCanvas();
+            initFluidBeads();
+
+            var btn = document.getElementById('btn-p-fire');
+            if (btn) {
+                var onStartFire = function(e) { pnFireStart(); };
+                var onEndFire = function(e) { pnFireEnd(); };
+
+                btn.addEventListener('mousedown', onStartFire);
+                btn.addEventListener('touchstart', onStartFire, { passive: true });
+                window.addEventListener('mouseup', onEndFire);
+                window.addEventListener('touchend', onEndFire);
+                btn.addEventListener('mouseleave', onEndFire);
+            }
+
+            pUpdateParams();
+            if (!pnState.reqId) {
+                pnState.lastTime = performance.now();
+                pnRenderLoop(performance.now());
+            }
+        }
+
+        function pSetMode(m) {
+            pnState.mode = m;
+            var btnMtl = document.getElementById('p-mode-mtl');
+            var btnDl = document.getElementById('p-mode-dl');
+            var desc = document.getElementById('p-lbl-mode-desc');
+
+            if (btnMtl && btnDl) {
+                btnMtl.className = (m === 'MTL') 
+                    ? "px-3 py-1 rounded bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm transition" 
+                    : "px-3 py-1 rounded text-neutral-500 transition";
+                btnDl.className = (m === 'DL') 
+                    ? "px-3 py-1 rounded bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm transition" 
+                    : "px-3 py-1 rounded text-neutral-500 transition";
+            }
+            if (desc) {
+                desc.innerText = (m === 'MTL') ? "MTL: Q=25mL/s, P=3000Pa" : "DL: Q=120mL/s, P=800Pa";
+            }
+            pUpdateParams();
+        }
+
+        function pResetGolden() {
+            pSetMode('MTL');
+            document.getElementById('p-slider-din').value = 1.2;
+            document.getElementById('p-slider-dtip').value = 4.0;
+            document.getElementById('p-slider-dvent').value = 1.2;
+            pnState.tankVacuumAcc = 0;
+            pnState.failedPuffCount = 0;
+            pnState.isDryHit = false;
+            pnState.isFlooding = false;
+            pnState.wickFillRatio = 0.95;
+            pUpdateParams();
+        }
+
+        function pUpdateParams() {
+            var elDin = document.getElementById('p-slider-din');
+            var elDtip = document.getElementById('p-slider-dtip');
+            var elDvent = document.getElementById('p-slider-dvent');
+            if (elDin) pnState.d_in = parseFloat(elDin.value);
+            if (elDtip) pnState.d_tip = parseFloat(elDtip.value);
+            if (elDvent) pnState.d_vent = parseFloat(elDvent.value);
+
+            var valDin = document.getElementById('p-val-din');
+            var valDtip = document.getElementById('p-val-dtip');
+            var valDvent = document.getElementById('p-val-dvent');
+            if (valDin) valDin.innerText = pnState.d_in.toFixed(1) + ' mm';
+            if (valDtip) valDtip.innerText = pnState.d_tip.toFixed(1) + ' mm';
+            if (valDvent) valDvent.innerText = pnState.d_vent.toFixed(1) + ' mm';
+
+            var calc = pnCalculate({
+                mode: pnState.mode,
+                d_in: pnState.d_in,
+                d_tip: pnState.d_tip,
+                d_vent: pnState.d_vent
+            }, pnState.tankVacuumAcc);
+
+            pnState.P_ch = calc.P_ch;
+            pnState.v_init = calc.v_init;
+            pnState.v_steady = calc.v_steady;
+            pnState.t_eq = calc.t_eq;
+
+            evaluatePnStatus();
+        }
+
+        function evaluatePnStatus() {
+            var title = document.getElementById('p-diag-title');
+            var desc = document.getElementById('p-diag-desc');
+            var box = document.getElementById('p-diag-card');
+            
+            if (pnState.failedPuffCount >= 3) {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 border border-rose-500/30 bg-rose-900/10 transition-all duration-300";
+                if(title) { title.innerText = "真空锁断流干烧 (Vacuum Lock)"; title.className = "font-semibold text-rose-500 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "通气孔闭锁，油仓内部积聚未泄放负压！液体被反向吸回，线圈干烧报警。";
+            } else if (pnState.mode === 'DL' && pnState.d_in <= 1.0) {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 border border-amber-500/30 bg-amber-900/10 transition-all duration-300";
+                if(title) { title.innerText = "气动超压淹仓 (Flooding)"; title.className = "font-semibold text-amber-500 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "DL 大流量遭遇过小进气孔，气动水锤失控飙升，油液瞬间冲破发热区溢出并淹没甲板！";
+            } else if (pnState.d_in <= 0.9) {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 border border-cyan-500/30 bg-cyan-900/10 transition-all duration-300";
+                if(title) { title.innerText = "深负压水锤加速 (Hammer Surge)"; title.className = "font-semibold text-cyan-500 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "极小进气孔形成深度瞬态压差，驱动网芯油液极速狂飙充填。";
+            } else if (pnState.d_in >= 1.8) {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 border border-slate-500/30 bg-slate-900/10 transition-all duration-300";
+                if(title) { title.innerText = "开阔泄压缓流 (Pressure Relief Flow)"; title.className = "font-semibold text-slate-400 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "大进气泄压明显，有效负压降低，流体回落为常规缓慢爬升。";
+            } else if (pnState.mode === 'MTL' && pnState.d_in >= 1.0 && pnState.d_in <= 1.3 && pnState.d_vent >= 1.0 && pnState.d_vent <= 1.4) {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 border border-emerald-500/30 bg-emerald-900/10 transition-all duration-300";
+                if(title) { title.innerText = "完美供油 (Golden Sweet Spot)"; title.className = "font-semibold text-emerald-500 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "按下引发充沛水锤上冲，松开通气孔顺畅吐泡释压，流速强劲且持久稳定。";
+            } else {
+                if(box) box.className = "p-3.5 apple-glass-sub rounded-xl text-xs space-y-1 mt-4 transition-all duration-300";
+                if(title) { title.innerText = "常规可用工况"; title.className = "font-semibold text-neutral-400 flex items-center space-x-1.5"; }
+                if(desc) desc.innerText = "参数处于容错区间内，随负压大小调整水锤流速。";
+            }
+        }
+
+        function pnFireStart() {
+            if (pnState.isFiring) return;
+            pnState.isFiring = true;
+            pnState.holdTime = 0;
+
+            var btn = document.getElementById('btn-p-fire');
+            if (btn) {
+                btn.classList.add('scale-95', 'shadow-[0_0_25px_rgba(6,182,212,0.8)]');
+                btn.classList.remove('shadow-[0_0_15px_rgba(6,182,212,0.4)]', 'hover:scale-105');
+            }
+
+            if (pnState.failedPuffCount >= 3) {
+                pnState.isDryHit = true;
+                pnState.isFlooding = false;
+            } else if (pnState.mode === 'DL' && pnState.d_in <= 1.0) {
+                pnState.isFlooding = true;
+                pnState.isDryHit = false;
+            } else {
+                pnState.isDryHit = false;
+                pnState.isFlooding = false;
+            }
+
+            var tag = document.getElementById('p-tag-state');
+            if (tag) {
+                if (pnState.isDryHit) {
+                    tag.innerText = "真空锁干烧 (Dry Hit)";
+                    tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-rose-500 font-bold animate-pulse";
+                } else if (pnState.isFlooding) {
+                    tag.innerText = "水锤淹仓 (Flooding)";
+                    tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-amber-500 font-bold animate-pulse";
+                } else if (pnState.d_in <= 0.9) {
+                    tag.innerText = "水锤狂飙 (Surge)";
+                    tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-cyan-400 font-bold animate-pulse";
+                } else if (pnState.d_in >= 1.8) {
+                    tag.innerText = "泄压缓流 (Relief)";
+                    tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 font-bold";
+                } else {
+                    tag.innerText = "水锤冲顶 (T1)";
+                    tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-blue-500 font-bold";
+                }
+            }
+        }
+
+        function pnFireEnd() {
+            if (!pnState.isFiring) return;
+            pnState.isFiring = false;
+
+            var btn = document.getElementById('btn-p-fire');
+            if (btn) {
+                btn.classList.remove('scale-95', 'shadow-[0_0_25px_rgba(6,182,212,0.8)]');
+                btn.classList.add('shadow-[0_0_15px_rgba(6,182,212,0.4)]', 'hover:scale-105');
+            }
+
+            var calc = pnCalculate({
+                mode: pnState.mode,
+                d_in: pnState.d_in,
+                d_tip: pnState.d_tip,
+                d_vent: pnState.d_vent
+            }, pnState.tankVacuumAcc);
+
+            if (calc.canBubble) {
+                pnState.failedPuffCount = 0;
+                pnState.tankVacuumAcc = 0;
+                var ventX = 265;
+                var ventY = 275;
+                for (var i = 0; i < 3; i++) {
+                    pnState.bubbles.push({ x: ventX + (Math.random()-0.5)*4, y: ventY + 5 + i*5, size: pnState.d_vent*1.5 + Math.random()*2, vy: -1.5 });
+                }
+            } else {
+                pnState.failedPuffCount++;
+                pnState.tankVacuumAcc += 100;
+            }
+
+            var tag = document.getElementById('p-tag-state');
+            if (tag) {
+                tag.innerText = "待机平衡 (T0)";
+                tag.className = "apple-glass-sub px-2 py-0.5 rounded text-[10px] font-mono text-neutral-500 font-semibold";
+            }
+            pUpdateParams();
+        }
+
+        function pnRenderLoop(timestamp) {
+            if (!pCanvas || !pCtx) {
+                pnState.reqId = requestAnimationFrame(pnRenderLoop);
+                return;
+            }
+            var dt = (timestamp - pnState.lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1;
+            pnState.lastTime = timestamp;
+
+            var calc = pnCalculate({
+                mode: pnState.mode,
+                d_in: pnState.d_in,
+                d_tip: pnState.d_tip,
+                d_vent: pnState.d_vent
+            }, pnState.tankVacuumAcc);
+
+            var currentVwick = pnMESH.baseCapillarySpeed;
+            var isRedHot = false;
+
+            if (pnState.isFiring) {
+                pnState.holdTime += dt;
+                
+                if (pnState.isDryHit) {
+                    currentVwick = -80.0;
+                    isRedHot = true;
+                    pnState.wickFillRatio = Math.max(0.18, pnState.wickFillRatio - dt * 0.85);
+                } else if (pnState.isFlooding) {
+                    currentVwick = calc.v_init * 1.5;
+                    pnState.wickFillRatio = 0.99;
+                } else {
+                    var decay = Math.exp(-pnState.holdTime / (calc.t_eq * 4.5));
+                    currentVwick = calc.v_steady + (calc.v_init - calc.v_steady) * decay;
+                    pnState.wickFillRatio = Math.min(0.97, pnState.wickFillRatio + dt * 0.12);
+                }
+
+                if (Math.random() < 0.65) {
+                    pnState.airflowParticles.push({ x: 120, y: 180 + (Math.random() - 0.5) * (pnState.d_in * 8), vx: 3.5 + Math.random() * 2.5, vy: 0, life: 1 });
+                }
+                
+                var vaporColor = isRedHot ? 'rgba(234, 179, 8, ' : 'rgba(240, 245, 255, ';
+                if (Math.random() < 0.85) {
+                    pnState.vaporParticles.push({ x: 200 + (Math.random() - 0.5) * (pnState.d_tip * 3), y: 190, vx: (Math.random() - 0.5) * 0.8, vy: -4.0 - Math.random() * 2.5, size: 3 + Math.random() * 3, alpha: 0.85, colorBase: vaporColor });
+                }
+            } else {
+                if (pnState.wickFillRatio < 0.94 && !pnState.isDryHit) {
+                    pnState.wickFillRatio += dt * 0.15;
+                }
+                currentVwick = pnMESH.baseCapillarySpeed;
+            }
+
+            pnState.v_wick += (currentVwick - pnState.v_wick) * 0.45; 
+
+            pCtx.clearRect(0, 0, 440, 640);
+            
+            // 雾化仓底板与结构
+            var tipHalfW = (pnState.d_tip / 2.0) * 8.5; 
+            pCtx.fillStyle = '#1e242b'; pCtx.fillRect(200 - tipHalfW - 8, 50, 8, 50); pCtx.fillRect(200 + tipHalfW, 50, 8, 50);     
+            pCtx.strokeStyle = '#64748b'; pCtx.lineWidth = 1.5; pCtx.strokeRect(200 - tipHalfW - 8, 50, 8, 50); pCtx.strokeRect(200 + tipHalfW, 50, 8, 50);
+
+            pCtx.strokeStyle = '#94a3b8'; pCtx.lineWidth = 2.5; pCtx.beginPath(); pCtx.moveTo(200 - tipHalfW - 8, 100); pCtx.lineTo(90, 125); pCtx.lineTo(90, 250); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(200 + tipHalfW + 8, 100); pCtx.lineTo(310, 125); pCtx.lineTo(310, 250); pCtx.stroke();
+
+            var airHoleY = 165; var airHoleH = pnState.d_in * 9;
+            pCtx.clearRect(87, airHoleY - airHoleH / 2, 7, airHoleH); pCtx.fillStyle = '#38bdf8'; pCtx.fillRect(82, airHoleY - airHoleH / 2, 6, airHoleH); 
+
+            pCtx.fillStyle = '#334155'; pCtx.fillRect(75, 250, 250, 20); pCtx.strokeStyle = '#64748b'; pCtx.lineWidth = 1.5; pCtx.strokeRect(75, 250, 250, 20);
+            pCtx.clearRect(185, 250, 30, 20); var ventX = 265; var ventW = pnState.d_vent * 7; pCtx.clearRect(ventX - ventW / 2, 250, ventW, 20); pCtx.strokeStyle = '#0284c7'; pCtx.lineWidth = 1; pCtx.strokeRect(ventX - ventW / 2, 250, ventW, 20);
+
+            pCtx.fillStyle = 'rgba(15, 23, 42, 0.45)'; pCtx.fillRect(80, 270, 240, 270); pCtx.strokeStyle = '#475569'; pCtx.lineWidth = 2.0; pCtx.strokeRect(80, 270, 240, 270);
+            var liqGrad = pCtx.createLinearGradient(0, 410, 0, 540); liqGrad.addColorStop(0, 'rgba(245, 158, 11, 0.45)'); liqGrad.addColorStop(1, 'rgba(217, 119, 6, 0.65)'); pCtx.fillStyle = liqGrad; pCtx.fillRect(82, 410, 236, 130);
+
+            var wickX = 185; var wickY = 180; var wickW = 30; var wickH = 240;
+            pCtx.fillStyle = '#1e293b'; pCtx.fillRect(wickX, wickY, wickW, wickH); pCtx.strokeStyle = '#64748b'; pCtx.lineWidth = 1.2; pCtx.strokeRect(wickX, wickY, wickW, wickH);
+
+            var fillPixels = wickH * pnState.wickFillRatio; var fillTopY = (wickY + wickH) - fillPixels;
+            var wickLiquidGrad = pCtx.createLinearGradient(0, wickY + wickH, 0, fillTopY); wickLiquidGrad.addColorStop(0, '#d97706'); wickLiquidGrad.addColorStop(1, '#f59e0b');
+            pCtx.fillStyle = wickLiquidGrad; pCtx.fillRect(wickX + 1, fillTopY, wickW - 2, fillPixels);
+            pCtx.strokeStyle = '#fbbf24'; pCtx.lineWidth = 1.5; pCtx.beginPath(); pCtx.moveTo(wickX + 1, fillTopY); pCtx.quadraticCurveTo(wickX + wickW / 2, fillTopY + 2.5, wickX + wickW - 1, fillTopY); pCtx.stroke();
+
+            // 液体小球渲染引擎
+            var speedMult = dt * 180;
+            var vMag = Math.abs(pnState.v_wick);
+
+            for (var bIdx = 0; bIdx < pnState.beads.length; bIdx++) {
+                var bead = pnState.beads[bIdx]; 
+                bead.y -= (pnState.v_wick * bead.speed * 0.05 * speedMult);
+                
+                if (pnState.v_wick > 0 && bead.y < fillTopY) { 
+                    bead.y = wickY + wickH - 4; 
+                    bead.x = wickX + 4 + Math.random() * (wickW - 8); 
+                } 
+                else if (pnState.v_wick < 0 && bead.y > wickY + wickH) { 
+                    bead.y = fillTopY + 2; 
+                    bead.x = wickX + 4 + Math.random() * (wickW - 8); 
+                }
+                
+                if (bead.y >= fillTopY && bead.y <= wickY + wickH) {
+                    var speedNorm = Math.min(1.0, vMag / 400.0); 
+                    var colorR = Math.round(245 + speedNorm * 10);
+                    var colorG = Math.round(158 + speedNorm * 97);
+                    var colorB = Math.round(11 + speedNorm * 244);
+                    var dynamicAlpha = Math.min(1.0, bead.alpha + speedNorm * 0.6);
+
+                    pCtx.fillStyle = 'rgba(' + colorR + ',' + colorG + ',' + colorB + ',' + dynamicAlpha + ')'; 
+                    pCtx.beginPath(); 
+                    pCtx.arc(bead.x, bead.y, bead.size, 0, Math.PI * 2); 
+                    pCtx.fill(); 
+                }
+            }
+
+            // 发热线圈
+            for (var c = 0; c < 4; c++) {
+                var cy = 205 + c * 8; pCtx.lineWidth = 3.2;
+                if (isRedHot) { pCtx.strokeStyle = '#ff1e1e'; pCtx.shadowColor = '#ff2200'; pCtx.shadowBlur = 12; } 
+                else if (pnState.isFiring) { pCtx.strokeStyle = '#f97316'; pCtx.shadowColor = '#f97316'; pCtx.shadowBlur = 5; } 
+                else { pCtx.strokeStyle = '#94a3b8'; pCtx.shadowBlur = 0; }
+                pCtx.beginPath(); pCtx.moveTo(wickX - 4, cy + 2); pCtx.lineTo(wickX + wickW + 4, cy - 2); pCtx.stroke(); pCtx.shadowBlur = 0;
+            }
+
+            // 淹仓泼油
+            if (pnState.isFlooding && pnState.isFiring) {
+                pCtx.fillStyle = '#f59e0b';
+                pCtx.beginPath(); pCtx.arc(wickX - 3, wickY + 4, 3.5, 0, Math.PI * 2); pCtx.arc(wickX + wickW + 3, wickY + 6, 4, 0, Math.PI * 2); pCtx.fill();
+                pCtx.fillRect(100, 248, 80, 3); pCtx.fillRect(220, 248, 40, 3);
+            }
+
+            // 进气气流粒子
+            for (var a = pnState.airflowParticles.length - 1; a >= 0; a--) {
+                var ap = pnState.airflowParticles[a]; ap.x += ap.vx; ap.life -= 0.025;
+                if (ap.life <= 0 || ap.x > 180) pnState.airflowParticles.splice(a, 1); 
+                else { pCtx.fillStyle = 'rgba(56, 189, 248, ' + ap.life + ')'; pCtx.beginPath(); pCtx.arc(ap.x, ap.y, 1.8, 0, Math.PI * 2); pCtx.fill(); }
+            }
+            
+            // 蒸气粒子
+            for (var v = pnState.vaporParticles.length - 1; v >= 0; v--) {
+                var vp = pnState.vaporParticles[v]; vp.x += vp.vx; vp.y += vp.vy; vp.size += 0.15; vp.alpha -= 0.022;
+                if (vp.alpha <= 0 || vp.y < 40) pnState.vaporParticles.splice(v, 1); 
+                else { pCtx.fillStyle = vp.colorBase + vp.alpha + ')'; pCtx.beginPath(); pCtx.arc(vp.x, vp.y, vp.size, 0, Math.PI * 2); pCtx.fill(); }
+            }
+
+            // 泄压破泡
+            for (var b = pnState.bubbles.length - 1; b >= 0; b--) {
+                var bp = pnState.bubbles[b]; bp.y -= 2; bp.x += (Math.random() - 0.5); bp.alpha -= 0.01;
+                if (bp.y < 410 || bp.alpha <= 0) pnState.bubbles.splice(b, 1); 
+                else { pCtx.strokeStyle = 'rgba(255, 255, 255, ' + bp.alpha + ')'; pCtx.fillStyle = 'rgba(255, 255, 255, ' + (bp.alpha*0.2) + ')'; pCtx.lineWidth = 1.2; pCtx.beginPath(); pCtx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2); pCtx.fill(); pCtx.stroke(); }
+            }
+            
+            pnState.reqId = requestAnimationFrame(pnRenderLoop);
+        }
+
+        // ==========================================
+        // 6. 初始化引导
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            try { initCapillarySim(); } catch(e) { console.warn("Sim canvas error:", e); }
+            try { initVmSimulators(); } catch(e) { console.warn("Vm canvas error:", e); }
+            try { initPressureSim(); } catch(e) { console.warn("Pressure canvas error:", e); }
+            if (typeof updateSim === 'function') updateSim();
+        });
+    </script>
+</body>
+</html>
